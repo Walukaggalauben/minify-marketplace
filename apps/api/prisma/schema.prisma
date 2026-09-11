@@ -1,0 +1,283 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Ad {
+  id String @id @default(cuid())
+  sellerId       String
+  categoryId     String
+  title          String
+  slug           String         @unique
+  description    String
+  price          Decimal        @db.Decimal(14, 2)
+  negotiable     Boolean        @default(true)
+  condition      Condition
+  city           String
+  location       String?
+  status         AdStatus       @default(DRAFT)
+  views          Int            @default(0)
+  createdAt      DateTime       @default(now())
+  updatedAt DateTime @updatedAt
+  publishedAt    DateTime?
+  boostUntil     DateTime?
+  featuredUntil  DateTime?
+  moderationNote String?
+  expiresAt      DateTime?
+  category       Category       @relation(fields: [categoryId], references: [id])
+  seller         User           @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  images         AdImage[]
+  conversations  Conversation[]
+  favorites      Favorite[]
+  orders         Order[]
+  promotions     Promotion[]
+  reports        Report[]
+}
+
+model AdImage {
+  id String @id @default(cuid())
+  adId      String
+  url       String
+  sortOrder Int    @default(0)
+  ad        Ad     @relation(fields: [adId], references: [id], onDelete: Cascade)
+}
+
+model Category {
+  id String @id @default(cuid())
+  name           String
+  slug           String        @unique
+  parentId       String?
+  Ad             Ad[]
+  Category       Category?     @relation("CategoryToCategory", fields: [parentId], references: [id])
+  children       Category[]    @relation("CategoryToCategory")
+  SavedSearch    SavedSearch[]
+}
+
+model Conversation {
+  id String @id @default(cuid())
+  adId                             String
+  buyerId                          String
+  sellerId                         String
+  createdAt                        DateTime  @default(now())
+  updatedAt DateTime @updatedAt
+  ad                               Ad        @relation(fields: [adId], references: [id], onDelete: Cascade)
+  buyer                            User      @relation("Conversation_buyerIdToUser", fields: [buyerId], references: [id])
+  seller                           User      @relation("Conversation_sellerIdToUser", fields: [sellerId], references: [id])
+  messages                         Message[]
+
+  @@unique([adId, buyerId])
+}
+
+model Favorite {
+  userId    String
+  adId      String
+  createdAt DateTime @default(now())
+  Ad        Ad       @relation(fields: [adId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, adId])
+}
+
+model Message {
+  id String @id @default(cuid())
+  conversationId String
+  senderId       String
+  body           String
+  readAt         DateTime?
+  createdAt      DateTime     @default(now())
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  User           User         @relation(fields: [senderId], references: [id])
+}
+
+model Notification {
+  id String @id @default(cuid())
+  userId    String
+  type      String
+  title     String
+  body      String
+  link      String?
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+  User      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([userId, readAt])
+}
+
+model Order {
+  id String @id @default(cuid())
+  adId                      String
+  buyerId                   String
+  sellerId                  String
+  quantity                  Int      @default(1)
+  total                     Decimal  @db.Decimal(14, 2)
+  paymentMethod             String   @default("CASH")
+  paymentStatus             String   @default("PENDING")
+  paymentReference          String?  @unique
+  paymentProvider           String?
+  status                    String   @default("REQUESTED")
+  deliveryMethod            String   @default("MEETUP")
+  deliveryAddress           String?
+  buyerNote                 String?
+  createdAt                 DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ad                        Ad       @relation(fields: [adId], references: [id], onDelete: Cascade)
+  buyer                     User     @relation("Order_buyerIdToUser", fields: [buyerId], references: [id])
+  seller                    User     @relation("Order_sellerIdToUser", fields: [sellerId], references: [id])
+
+  @@index([buyerId, status])
+  @@index([sellerId, status])
+}
+
+model Promotion {
+  id String @id @default(cuid())
+  adId      String
+  type      String
+  amount    Decimal  @db.Decimal(14, 2)
+  startsAt  DateTime @default(now())
+  endsAt    DateTime
+  status    String   @default("ACTIVE")
+  createdAt DateTime @default(now())
+  sellerId  String
+  Ad        Ad       @relation(fields: [adId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+
+  @@index([adId, status])
+}
+
+model PromotionPayment {
+  id String @id @default(cuid())
+  promotionId String
+  userId      String
+  amount      Decimal  @db.Decimal(14, 2)
+  currency    String   @default("UGX")
+  provider    String?
+  reference   String?
+  status      String   @default("PENDING")
+  createdAt   DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  User        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([promotionId])
+  @@index([userId, status])
+}
+
+model Report {
+  id String @id @default(cuid())
+  reporterId String
+  adId       String
+  reason     String
+  details    String?
+  resolved   Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  Ad         Ad       @relation(fields: [adId], references: [id], onDelete: Cascade)
+  User       User     @relation(fields: [reporterId], references: [id])
+}
+
+model Review {
+  id String @id @default(cuid())
+  reviewerId                   String
+  sellerId                     String
+  rating                       Int
+  comment                      String?
+  createdAt                    DateTime @default(now())
+  reviewer                       User     @relation("Review_reviewerIdToUser", fields: [reviewerId], references: [id])
+  seller                         User     @relation("Review_sellerIdToUser", fields: [sellerId], references: [id])
+}
+
+model SavedSearch {
+  id String @id @default(cuid())
+  userId     String
+  name       String
+  query      String?
+  categoryId String?
+  minPrice   Decimal?  @db.Decimal(14, 2)
+  maxPrice   Decimal?  @db.Decimal(14, 2)
+  city       String?
+  createdAt  DateTime  @default(now())
+  category   Category? @relation(fields: [categoryId], references: [id])
+  User       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
+
+model SubscriptionPayment {
+  id String @id @default(cuid())
+  userId    String
+  plan      String
+  amount    Decimal   @db.Decimal(14, 2)
+  currency  String    @default("UGX")
+  provider  String?
+  reference String?
+  status    String    @default("PENDING")
+  startedAt DateTime?
+  endsAt    DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime @updatedAt
+  User      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([reference])
+  @@index([userId, status])
+}
+
+model User {
+  id String @id @default(cuid())
+  name                                     String
+  email                                    String                @unique
+  phone                                    String                @unique
+  passwordHash                             String
+  role                                     Role                  @default(BUYER)
+  avatarUrl                                String?
+  city                                     String?               @default("Kampala")
+  verified                                 Boolean               @default(false)
+  createdAt                                DateTime              @default(now())
+  updatedAt DateTime @updatedAt
+  verificationNote                         String?
+  verificationStatus                       String                @default("UNVERIFIED")
+  sellerTrialStartedAt                     DateTime?
+  subscriptionEndsAt                       DateTime?
+  subscriptionPlan                         String?
+  subscriptionStartedAt                    DateTime?
+  subscriptionStatus                       String                @default("NONE")
+  ads                                      Ad[]
+  buyerConversations                      Conversation[]        @relation("Conversation_buyerIdToUser")
+  sellerConversations                     Conversation[]        @relation("Conversation_sellerIdToUser")
+  Favorite                                 Favorite[]
+  Message                                  Message[]
+  notifications                             Notification[]
+  buyerOrders                               Order[]               @relation("Order_buyerIdToUser")
+  sellerOrders                              Order[]               @relation("Order_sellerIdToUser")
+  Promotion                                Promotion[]
+  promotionPayments                         PromotionPayment[]
+  Report                                   Report[]
+  reviewsGiven                              Review[]              @relation("Review_reviewerIdToUser")
+  reviewsReceived                           Review[]              @relation("Review_sellerIdToUser")
+  savedSearches                             SavedSearch[]
+  subscriptionPayments                     SubscriptionPayment[]
+}
+
+enum AdStatus {
+  DRAFT
+  PENDING_REVIEW
+  ACTIVE
+  SOLD
+  REJECTED
+  EXPIRED
+}
+
+enum Condition {
+  NEW
+  USED
+  REFURBISHED
+}
+
+enum Role {
+  ADMIN
+  SELLER
+  BUYER
+  MODERATOR
+}

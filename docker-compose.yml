@@ -1,0 +1,22 @@
+services:
+  postgres:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: minify
+      POSTGRES_PASSWORD: minify_dev_password
+      POSTGRES_DB: minify_marketplace
+    ports:
+      - "5432:5432"
+    volumes:
+      - minify_pg:/var/lib/postgresql
+  redis:
+    image: redis:8-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - minify_redis:/data
+volumes:
+  minify_pg:
+  minify_redis:

@@ -1,0 +1,12 @@
+'use client';
+import {useEffect,useState} from 'react';
+import Header from '../components/Header';
+import {api} from '../lib';
+
+export default function Account(){
+ const [u,setU]=useState<any>(null),[name,setName]=useState(''),[city,setCity]=useState(''),[msg,setMsg]=useState(''),[busy,setBusy]=useState(false);
+ useEffect(()=>{if(!localStorage.getItem('minify_token')){location.href='/login';return}api('/users/me/profile').then(x=>{setU(x);setName(x.name||'');setCity(x.city||'')}).catch(()=>{})},[]);
+ async function save(e:any){e.preventDefault();setBusy(true);setMsg('');try{const x=await api('/users/me/profile',{method:'PATCH',body:JSON.stringify({name,city})});setU(x);localStorage.setItem('minify_user',JSON.stringify({...JSON.parse(localStorage.getItem('minify_user')||'{}'),...x}));setMsg('Profile updated successfully.')}catch(e:any){setMsg(e?.message||'Could not update profile.')}finally{setBusy(false)}}
+ function signOut(){localStorage.removeItem('minify_token');localStorage.removeItem('minify_user');location.href='/'}
+ return <><Header/><main className="container section"><div className="two"><section className="panel"><span className="eyebrow">MY ACCOUNT</span><h1>Profile settings</h1><p className="muted">Keep your marketplace profile accurate so buyers and sellers know who they are dealing with.</p>{u&&<form className="auth-form" onSubmit={save}><label>Full name<input value={name} onChange={e=>setName(e.target.value)} required/></label><label>Email<input value={u.email||''} disabled/></label><label>Phone<input value={u.phone||''} disabled/></label><label>City / area<input value={city} onChange={e=>setCity(e.target.value)} placeholder="Kampala"/></label><button className="btn primary" disabled={busy}>{busy?'Saving…':'Save changes'}</button>{msg&&<div className="notice">{msg}</div>}</form>}</section><aside className="panel"><h2>Account centre</h2>{u&&<div className="account-links"><a className="btn outline" href="/dashboard">Dashboard</a><a className="btn outline" href="/orders">My orders</a><a className="btn outline" href="/favorites">Saved adverts</a><a className="btn outline" href="/messages">Messages</a><a className="btn outline" href="/notifications">Notifications</a>{u.role!=='BUYER'&&<a className="btn outline" href="/verification">Seller verification</a>}<button className="btn danger" onClick={signOut}>Sign out</button></div>}</aside></div></main></>;
+}

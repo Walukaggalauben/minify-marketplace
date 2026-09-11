@@ -1,0 +1,17 @@
+'use client';
+import { useEffect, useState } from 'react';
+import Header from '../components/Header';
+import { api,API_ORIGIN } from '../lib';
+import { io, Socket } from 'socket.io-client';
+import { MessageCircle, Send } from 'lucide-react';
+
+export default function MessagesPage(){
+ const [user,setUser]=useState<any>(null),[items,setItems]=useState<any[]>([]),[selected,setSelected]=useState<any>(null),[messages,setMessages]=useState<any[]>([]),[body,setBody]=useState(''),[busy,setBusy]=useState(false),[socket,setSocket]=useState<Socket|null>(null);
+ useEffect(()=>{if(!user)return;const token=localStorage.getItem('minify_token')||'';const s=io(API_ORIGIN+'/chat',{auth:{token}});s.on('message:new',(m:any)=>{setMessages(x=>x.some(v=>v.id===m.id)?x:[...x,m]);setItems(x=>x.map(c=>c.id===m.conversationId?{...c,messages:[m]}:c));});setSocket(s);return()=>{s.disconnect()}},[user]);
+ useEffect(()=>{const raw=localStorage.getItem('minify_user');if(!raw){location.href='/login?next=/messages';return}const u=JSON.parse(raw);setUser(u);api('/chats/'+u.id).then(setItems).catch(()=>{})},[]);
+ async function open(c:any){setSelected(c);socket?.emit('conversation:join',{conversationId:c.id});try{setMessages(await api('/chats/conversation/'+c.id));await api('/chats/conversation/'+c.id+'/read',{method:'POST'});setItems(x=>x.map(v=>v.id===c.id?{...v,messages:v.messages?.length?[{...v.messages[0],readAt:new Date().toISOString()}]:v.messages}:v))}catch{setMessages([])}}
+ async function send(e:any){e.preventDefault();if(!body.trim()||!selected||busy)return;setBusy(true);try{if(socket?.connected){const r=await new Promise<any>(resolve=>socket.emit('message:send',{conversationId:selected.id,body:body.trim()},resolve));if(!r?.ok)throw new Error(r?.error||'Could not send message.');setBody('')}else{const m=await api('/chats/message',{method:'POST',body:JSON.stringify({conversationId:selected.id,body:body.trim()})});setMessages(x=>[...x,m]);setBody('')}}catch(err:any){alert(err.message||'Could not send message.')}finally{setBusy(false)}}
+ return <><Header/><main className="container section"><div className="section-head"><div><span className="eyebrow">MY ACCOUNT</span><h1>Messages</h1><p className="muted">Chat with buyers and sellers about adverts.</p></div></div>
+ <div className="messages-layout"><aside className="panel conversation-list">{items.length?items.map(c=><button className={'conversation '+(selected?.id===c.id?'selected':'')} key={c.id} onClick={()=>open(c)}><b>{c.ad?.title||'Ad conversation'}</b><span>{c.buyer?.id===user?.id?c.seller?.name:c.buyer?.name}</span><small>{c.messages?.[0]?.body||'No messages yet'}</small></button>):<div className="empty"><MessageCircle size={30}/><p>No conversations yet.</p></div>}</aside>
+ <section className="panel chat-panel">{selected?<><div className="chat-head"><b>{selected.ad?.title}</b><span>{selected.buyer?.id===user?.id?selected.seller?.name:selected.buyer?.name}</span></div><div className="chat-messages">{messages.map(m=><div className={'bubble '+(m.senderId===user?.id?'mine':'')} key={m.id}><span>{m.body}</span><small>{new Date(m.createdAt).toLocaleString()}</small></div>)}</div><form className="chat-form" onSubmit={send}><input value={body} onChange={e=>setBody(e.target.value)} placeholder="Write a message…"/><button className="btn primary" disabled={busy}><Send size={17}/> Send</button></form></>:<div className="empty chat-empty"><MessageCircle size={38}/><h3>Select a conversation</h3><p>Your messages will appear here.</p></div>}</section></div></main></>;
+}
