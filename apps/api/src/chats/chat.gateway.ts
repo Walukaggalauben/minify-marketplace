@@ -1,49 +1,13 @@
-import { WebSocketGateway, WebSocketServer, SubscribeMessage, ConnectedSocket, MessageBody } from '@nestjs/websockets';
-import { Server, Socket } from 'socket.io';
-import { JwtService } from '@nestjs/jwt';
-import { PrismaService } from '../prisma.service';
-
-@WebSocketGateway({ cors: { origin: true, credentials: true }, namespace: '/chat' })
-export class ChatGateway {
-  @WebSocketServer() server!: Server;
-  private sockets = new Map<string, Set<string>>();
-  constructor(private readonly db: PrismaService, private readonly jwt: JwtService) {}
-
-  handleConnection(socket: Socket) {
-    try {
-      const token = String(socket.handshake.auth?.token || socket.handshake.headers.authorization || '').replace(/^Bearer\s+/i, '');
-      const payload = this.jwt.verify(token);
-      const userId = String(payload.sub);
-      socket.data.userId = userId;
-      const set = this.sockets.get(userId) || new Set<string>(); set.add(socket.id); this.sockets.set(userId, set);
-    } catch { socket.disconnect(true); }
-  }
-
-  handleDisconnect(socket: Socket) {
-    const userId = socket.data.userId; if (!userId) return;
-    const set = this.sockets.get(userId); if (!set) return; set.delete(socket.id); if (!set.size) this.sockets.delete(userId);
-  }
-
-  @SubscribeMessage('conversation:join')
-  async join(@ConnectedSocket() socket: Socket, @MessageBody() body: { conversationId?: string }) {
-    const id = String(body?.conversationId || ''); const userId = socket.data.userId;
-    if (!id || !userId) return { ok: false, error: 'Invalid conversation.' };
-    const c = await this.db.conversation.findUnique({ where: { id }, select: { buyerId: true, sellerId: true } });
-    if (!c || ![c.buyerId, c.sellerId].includes(userId)) return { ok: false, error: 'Access denied.' };
-    await socket.join(`conversation:${id}`); return { ok: true };
-  }
-
-  @SubscribeMessage('message:send')
-  async send(@ConnectedSocket() socket: Socket, @MessageBody() body: { conversationId?: string; body?: string }) {
-    const id = String(body?.conversationId || ''); const text = String(body?.body || '').trim(); const userId = socket.data.userId;
-    if (!id || !text || text.length > 2000 || !userId) return { ok: false, error: 'Invalid message.' };
-    const c = await this.db.conversation.findUnique({ where: { id }, select: { id: true, buyerId: true, sellerId: true } });
-    if (!c || ![c.buyerId, c.sellerId].includes(userId)) return { ok: false, error: 'Access denied.' };
-    const message = await this.db.message.create({ data: { conversationId: id, senderId: userId, body: text }, include: { User: { select: { id: true, name: true } } } });
-    await this.db.conversation.update({ where: { id }, data: { updatedAt: new Date() } });
-    this.server.to(`conversation:${id}`).emit('message:new', message);
-    const recipient = c.buyerId === userId ? c.sellerId : c.buyerId;
-    for (const socketId of this.sockets.get(recipient) || []) this.server.to(socketId).emit('message:new', message);
-    return { ok: true, message };
-  }
+import {WebSocketGateway,WebSocketServer,SubscribeMessage,ConnectedSocket,MessageBody} from '@nestjs/websockets';
+import {Server,Socket} from 'socket.io';
+import {JwtService} from '@nestjs/jwt';
+import {PrismaService} from '../prisma.service';
+const allowedOrigins=(process.env.CORS_ORIGINS||'http://localhost:3000').split(',').map(x=>x.trim()).filter(Boolean);
+@WebSocketGateway({cors:{origin:allowedOrigins,credentials:true},namespace:'/chat'})
+export class ChatGateway{
+ @WebSocketServer() server!:Server;private sockets=new Map<string,Set<string>>();constructor(private readonly db:PrismaService,private readonly jwt:JwtService){}
+ handleConnection(socket:Socket){try{const token=String(socket.handshake.auth?.token||socket.handshake.headers.authorization||'').replace(/^Bearer\s+/i,'');if(!token)throw new Error('Missing token');const payload=this.jwt.verify(token,{secret:process.env.JWT_SECRET||'dev-secret'});const userId=String(payload.sub);if(!userId)throw new Error('Missing subject');socket.data.userId=userId;const set=this.sockets.get(userId)||new Set<string>();set.add(socket.id);this.sockets.set(userId,set);}catch{socket.disconnect(true);}}
+ handleDisconnect(socket:Socket){const userId=socket.data.userId;if(!userId)return;const set=this.sockets.get(userId);if(!set)return;set.delete(socket.id);if(!set.size)this.sockets.delete(userId);}
+ @SubscribeMessage('conversation:join') async join(@ConnectedSocket() socket:Socket,@MessageBody() body:{conversationId?:string}){const id=String(body?.conversationId||'');const userId=socket.data.userId;if(!id||!userId)return {ok:false,error:'Invalid conversation.'};const c=await this.db.conversation.findUnique({where:{id},select:{buyerId:true,sellerId:true}});if(!c||![c.buyerId,c.sellerId].includes(userId))return {ok:false,error:'Access denied.'};await socket.join(`conversation:${id}`);return {ok:true};}
+ @SubscribeMessage('message:send') async send(@ConnectedSocket() socket:Socket,@MessageBody() body:{conversationId?:string;body?:string}){const id=String(body?.conversationId||'');const text=String(body?.body||'').trim();const userId=socket.data.userId;if(!id||!text||text.length>2000||!userId)return {ok:false,error:'Invalid message.'};const c=await this.db.conversation.findUnique({where:{id},select:{id:true,buyerId:true,sellerId:true}});if(!c||![c.buyerId,c.sellerId].includes(userId))return {ok:false,error:'Access denied.'};const message=await this.db.message.create({data:{conversationId:id,senderId:userId,body:text},include:{User:{select:{id:true,name:true}}}});await this.db.conversation.update({where:{id},data:{updatedAt:new Date()}});this.server.to(`conversation:${id}`).emit('message:new',message);const recipient=c.buyerId===userId?c.sellerId:c.buyerId;for(const socketId of this.sockets.get(recipient)||[])this.server.to(socketId).emit('message:new',message);return {ok:true,message};}
 }

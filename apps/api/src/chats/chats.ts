@@ -1,24 +1,13 @@
-import {Body,Controller,Get,Param,Post,Request,UnauthorizedException,UseGuards} from '@nestjs/common';
+import {Body,Controller,Get,Param,Post,Request,UnauthorizedException,UseGuards,ForbiddenException,NotFoundException} from '@nestjs/common';
 import {PrismaService} from '../prisma.service';
 import {JwtAuthGuard} from '../auth/auth.guard';
-
-@UseGuards(JwtAuthGuard)
-@Controller('chats')
-export class ChatsController {
- constructor(private readonly db:PrismaService) {}
- @Get('unread-count')
- async unread(@Request() req:any){return {count:await this.db.message.count({where:{readAt:null,senderId:{not:req.user.sub},conversation:{OR:[{buyerId:req.user.sub},{sellerId:req.user.sub}]}}})};}
- @Post('conversation')
- async conv(@Body() d:any,@Request() req:any){
-  const buyerId=req.user.sub;if(buyerId===d.sellerId)throw new UnauthorizedException('You cannot start a chat with yourself.');
-  return this.db.conversation.upsert({where:{adId_buyerId:{adId:d.adId,buyerId}},update:{},create:{adId:d.adId,buyerId,sellerId:d.sellerId}});
- }
- @Get(':userId')
- async list(@Request() req:any){const userId=req.user.sub;return this.db.conversation.findMany({where:{OR:[{buyerId:userId},{sellerId:userId}]},include:{ad:{include:{images:true}},buyer:{select:{id:true,name:true}},seller:{select:{id:true,name:true}},messages:{orderBy:{createdAt:'desc'},take:1}},orderBy:{updatedAt:'desc'}});}
- @Get('conversation/:id')
- async messages(@Param('id') id:string,@Request() req:any){const c=await this.db.conversation.findUnique({where:{id}});if(!c||!([c.buyerId,c.sellerId] as string[]).includes(req.user.sub))throw new UnauthorizedException('Conversation access denied.');return this.db.message.findMany({where:{conversationId:id},include:{User:{select:{id:true,name:true}}},orderBy:{createdAt:'asc'}});}
- @Post('conversation/:id/read')
- async read(@Param('id') id:string,@Request() req:any){const c=await this.db.conversation.findUnique({where:{id}});if(!c||!([c.buyerId,c.sellerId] as string[]).includes(req.user.sub))throw new UnauthorizedException('Conversation access denied.');await this.db.message.updateMany({where:{conversationId:id,senderId:{not:req.user.sub},readAt:null},data:{readAt:new Date()}});return {ok:true};}
- @Post('message')
- async message(@Body() d:any,@Request() req:any){const c=await this.db.conversation.findUnique({where:{id:d.conversationId}});if(!c||!([c.buyerId,c.sellerId] as string[]).includes(req.user.sub))throw new UnauthorizedException('Conversation access denied.');const body=String(d.body||'').trim();if(!body)throw new UnauthorizedException('Message cannot be empty.');const msg=await this.db.message.create({data:{conversationId:c.id,senderId:req.user.sub,body}});const recipientId=c.buyerId===req.user.sub?c.sellerId:c.buyerId;await this.db.notification.create({data:{userId:recipientId,type:'MESSAGE',title:'New message',body:body.length>90?body.slice(0,87)+'...':body,link:'/messages?conversation='+c.id}});return msg;}
+@UseGuards(JwtAuthGuard) @Controller('chats')
+export class ChatsController{
+ constructor(private readonly db:PrismaService){}
+ @Get('unread-count') async unread(@Request() req:any){return {count:await this.db.message.count({where:{readAt:null,senderId:{not:req.user.sub},conversation:{OR:[{buyerId:req.user.sub},{sellerId:req.user.sub}]}}})};}
+ @Post('conversation') async conv(@Body() d:any,@Request() req:any){const buyerId=req.user.sub;const adId=String(d.adId||'');const sellerId=String(d.sellerId||'');if(!adId||!sellerId)throw new ForbiddenException('Advert and seller are required.');if(buyerId===sellerId)throw new UnauthorizedException('You cannot start a chat with yourself.');const ad=await this.db.ad.findUnique({where:{id:adId},select:{sellerId:true,status:true}});if(!ad)throw new NotFoundException('Advert not found.');if(ad.sellerId!==sellerId)throw new ForbiddenException('Seller does not own this advert.');if(ad.status==='EXPIRED'||ad.status==='REJECTED')throw new ForbiddenException('This advert is no longer available.');return this.db.conversation.upsert({where:{adId_buyerId:{adId,buyerId}},update:{sellerId:ad.sellerId},create:{adId,buyerId,sellerId:ad.sellerId}});}
+ @Get('mine') async list(@Request() req:any){const userId=req.user.sub;return this.db.conversation.findMany({where:{OR:[{buyerId:userId},{sellerId:userId}]},include:{ad:{include:{images:true}},buyer:{select:{id:true,name:true}},seller:{select:{id:true,name:true}},messages:{orderBy:{createdAt:'desc'},take:1}},orderBy:{updatedAt:'desc'}});}
+ @Get('conversation/:id') async messages(@Param('id') id:string,@Request() req:any){const c=await this.db.conversation.findUnique({where:{id}});if(!c||!([c.buyerId,c.sellerId] as string[]).includes(req.user.sub))throw new UnauthorizedException('Conversation access denied.');return this.db.message.findMany({where:{conversationId:id},include:{User:{select:{id:true,name:true}}},orderBy:{createdAt:'asc'}});}
+ @Post('conversation/:id/read') async read(@Param('id') id:string,@Request() req:any){const c=await this.db.conversation.findUnique({where:{id}});if(!c||!([c.buyerId,c.sellerId] as string[]).includes(req.user.sub))throw new UnauthorizedException('Conversation access denied.');await this.db.message.updateMany({where:{conversationId:id,senderId:{not:req.user.sub},readAt:null},data:{readAt:new Date()}});return {ok:true};}
+ @Post('message') async message(@Body() d:any,@Request() req:any){const c=await this.db.conversation.findUnique({where:{id:String(d.conversationId||'')}});if(!c||!([c.buyerId,c.sellerId] as string[]).includes(req.user.sub))throw new UnauthorizedException('Conversation access denied.');const body=String(d.body||'').trim();if(!body||body.length>2000)throw new ForbiddenException('Message must contain 1 to 2000 characters.');const msg=await this.db.message.create({data:{conversationId:c.id,senderId:req.user.sub,body}});await this.db.conversation.update({where:{id:c.id},data:{updatedAt:new Date()}});const recipientId=c.buyerId===req.user.sub?c.sellerId:c.buyerId;await this.db.notification.create({data:{userId:recipientId,type:'MESSAGE',title:'New message',body:body.length>90?body.slice(0,87)+'...':body,link:'/messages?conversation='+c.id}});return msg;}
 }
