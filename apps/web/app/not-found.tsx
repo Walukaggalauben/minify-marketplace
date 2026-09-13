@@ -1,0 +1,5 @@
+'use client';
+import Link from 'next/link';
+import {Search,ArrowRight,Home} from 'lucide-react';
+import Header from './components/Header';
+export default function NotFound(){return <><Header/><main className="container section"><section className="panel marketplace-not-found"><div className="not-found-code">404</div><span className="eyebrow">MINIFY MARKET</span><h1>We could not find that page.</h1><p className="muted">The page may have moved, or the link may be outdated. Your marketplace is still here.</p><div className="not-found-actions"><Link className="btn primary" href="/ads"><Search size={17}/> Browse marketplace</Link><Link className="btn outline" href="/"><Home size={17}/> Home</Link></div><div className="not-found-links"><Link href="/ads?category=Mobile%20Phones">Phones</Link><Link href="/ads?category=Laptops%20%26%20Computers">Laptops</Link><Link href="/ads?category=TV%20%26%20Video">TVs</Link><Link href="/sell">Sell an item <ArrowRight size={14}/></Link></div></section></main></>}

@@ -7,7 +7,7 @@ import {api} from '../lib';
 export default function Header(){
  const [q,setQ]=useState(''),[user,setUser]=useState<any>(null),[unread,setUnread]=useState(0),[noticeUnread,setNoticeUnread]=useState(0);
  useEffect(()=>{const raw=localStorage.getItem('minify_user');if(!raw)return;try{const u=JSON.parse(raw);setUser(u);const refresh=()=>{api('/chats/unread-count').then((x:any)=>setUnread(Number(x.count)||0)).catch(()=>{});api('/notifications/unread-count').then((x:any)=>setNoticeUnread(Number(x.count)||0)).catch(()=>{})};refresh();const timer=window.setInterval(refresh,30000);window.addEventListener('focus',refresh);return()=>{window.clearInterval(timer);window.removeEventListener('focus',refresh)}}catch{}},[]);
- function submit(e:React.FormEvent){e.preventDefault();location.href='/?q='+encodeURIComponent(q.trim())}
+ function submit(e:React.FormEvent){e.preventDefault();const v=q.trim();location.href=v?'/ads?q='+encodeURIComponent(v):'/ads'}
  return <header className="header"><div className="container nav">
   <Link href="/" className="brand" aria-label="MINIFY MARKET home"><span className="brand-logo-wrap"><Image src="/logo-market.png" alt="MINIFY GADGETS" width={181} height={65} className="brand-logo" priority/></span><span className="market-label">MARKET</span></Link>
   <form className="search" onSubmit={submit}><Search size={19}/><input value={q} onChange={e=>setQ(e.target.value)} placeholder="Search phones, laptops, TVs & more"/><button className="search-btn">Search</button></form>
