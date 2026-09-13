@@ -1,0 +1,42 @@
+'use client';
+import {useEffect,useState} from 'react';
+import Link from 'next/link';
+import Header from '../components/Header';
+import {api,money,mediaUrl} from '../lib';
+import {Heart,SlidersHorizontal,Search,MapPin,ShieldCheck,Grid3X3,List,ArrowUpDown} from 'lucide-react';
+
+type Ad=any;
+const cats=['All categories','Phones & Tablets','Mobile Phones','Accessories','Laptops & Computers','TV & Video','Audio','Wearables','Gaming','Home & Living','Vehicles'];
+const conditions=['Any condition','New','Used','Refurbished'];
+const cities=['All Uganda','Kampala','Wakiso','Mukono','Entebbe','Jinja','Mbarara'];
+
+export default function AdsPage(){
+ const [items,setItems]=useState<Ad[]>([]),[loading,setLoading]=useState(true),[error,setError]=useState('');
+ const [q,setQ]=useState(''),[category,setCategory]=useState('All categories'),[city,setCity]=useState('All Uganda');
+ const [condition,setCondition]=useState('Any condition'),[min,setMin]=useState(''),[max,setMax]=useState('');
+ const [sort,setSort]=useState('createdAt'),[view,setView]=useState<'grid'|'list'>('grid'),[page,setPage]=useState(1),[total,setTotal]=useState(0);
+ const limit=24;
+ useEffect(()=>{const p=new URLSearchParams(location.search);setQ(p.get('q')||'');setCategory(p.get('category')||'All categories');},[]);
+ useEffect(()=>{load();},[q,category,city,condition,min,max,sort,page]);
+ async function load(){setLoading(true);setError('');try{const p=new URLSearchParams({limit:String(limit),page:String(page),sort,order:sort==='price'?'asc':'desc'});if(q)p.set('q',q);if(category!=='All categories')p.set('category',category);if(city!=='All Uganda')p.set('city',city);if(condition!=='Any condition')p.set('condition',condition);if(min)p.set('minPrice',min);if(max)p.set('maxPrice',max);const d=await api('/ads?'+p.toString());setItems(Array.isArray(d)?d:(d.items||[]));setTotal(Number(d.total||d.count||0));}catch(e:any){setError(e.message||'Could not load adverts.');}finally{setLoading(false);}}
+ function reset(){setQ('');setCategory('All categories');setCity('All Uganda');setCondition('Any condition');setMin('');setMax('');setPage(1);}
+ return <><Header/><main className="container marketplace-browse">
+  <div className="browse-head"><div><span className="eyebrow">MINIFY MARKET</span><h1>Find it. Compare it. Buy it.</h1><p className="muted">Discover products from sellers across Uganda.</p></div><div className="view-toggle"><button className={view==='grid'?'active':''} onClick={()=>setView('grid')} aria-label="Grid view"><Grid3X3 size={18}/></button><button className={view==='list'?'active':''} onClick={()=>setView('list')} aria-label="List view"><List size={18}/></button></div></div>
+  <form className="browse-search" onSubmit={e=>{e.preventDefault();setPage(1);load()}}><Search size={19}/><input value={q} onChange={e=>setQ(e.target.value)} placeholder="Search phones, laptops, TVs, accessories..."/><button className="btn primary">Search</button></form>
+  <div className="browse-layout"><aside className="filter-panel"><div className="filter-title"><b>Filters</b><button onClick={reset} type="button">Reset</button></div>
+   <label>Category<select value={category} onChange={e=>{setCategory(e.target.value);setPage(1)}}>{cats.map(x=><option key={x}>{x}</option>)}</select></label>
+   <label>Location<select value={city} onChange={e=>{setCity(e.target.value);setPage(1)}}>{cities.map(x=><option key={x}>{x}</option>)}</select></label>
+   <label>Condition<select value={condition} onChange={e=>{setCondition(e.target.value);setPage(1)}}>{conditions.map(x=><option key={x}>{x}</option>)}</select></label>
+   <div className="price-fields"><label>Min price<input inputMode="numeric" value={min} onChange={e=>setMin(e.target.value)} placeholder="UGX"/></label><label>Max price<input inputMode="numeric" value={max} onChange={e=>setMax(e.target.value)} placeholder="UGX"/></label></div>
+   <button className="btn primary full" type="button" onClick={()=>{setPage(1);load()}}><SlidersHorizontal size={17}/> Apply filters</button>
+  </aside>
+  <section className="results"><div className="results-bar"><div><b>{loading?'Finding products…':total?`${total.toLocaleString()} adverts`:`${items.length} adverts`}</b>{q&&<span className="muted"> for “{q}”</span>}</div><label className="sort"><ArrowUpDown size={16}/><select value={sort} onChange={e=>{setSort(e.target.value);setPage(1)}}><option value="createdAt">Newest</option><option value="price">Lowest price</option><option value="views">Most viewed</option></select></label></div>
+   {error&&<div className="notice">{error}</div>}
+   {loading?<div className="grid">{Array.from({length:8}).map((_,i)=><div className="listing skeleton-card" key={i}/>)}</div>:items.length?<div className={view==='grid'?'grid':'listing-results'}>{items.map(a=><AdCard key={a.id} ad={a} list={view==='list'}/>)}</div>:<div className="empty browse-empty"><Search size={30}/><h3>No adverts found</h3><p>Try a different search or remove some filters.</p><button className="btn outline" onClick={reset}>Clear filters</button></div>}
+   {!loading&&items.length>=limit&&<div className="pagination"><button className="btn outline" disabled={page===1} onClick={()=>setPage(p=>p-1)}>Previous</button><span>Page {page}</span><button className="btn outline" onClick={()=>setPage(p=>p+1)}>Next</button></div>}
+  </section></div></main></>;
+}
+
+function AdCard({ad,list}:{ad:Ad;list:boolean}){const [saved,setSaved]=useState(false);const image=mediaUrl(ad.images?.[0]?.url||ad.imageUrl||'');return <Link className={`market-card ${list?'market-card-list':''}`} href={`/ad/${ad.id}`}>
+ <div className="market-card-media">{image?<img src={image} alt={ad.title||'Product'} loading="lazy"/>:<div className="image-placeholder">MINIFY<br/>MARKET</div>}{ad.featuredUntil||ad.boostUntil?<span className="featured-badge">Featured</span>:null}<button type="button" className={`save-card ${saved?'saved':''}`} aria-label="Save advert" onClick={async e=>{e.preventDefault();e.stopPropagation();setSaved(v=>!v)}}><Heart size={18} fill={saved?'currentColor':'none'}/></button></div>
+ <div className="market-card-body"><div className="price">{money(ad.price)}</div><h3>{ad.title}</h3><div className="card-meta"><span><MapPin size={14}/>{ad.city||'Uganda'}</span><span>{ad.condition||'Used'}</span></div><div className="seller-line">{ad.seller?.verified&&<ShieldCheck size={14}/>} {ad.seller?.name||'MINIFY seller'}{ad.negotiable&&<b>Negotiable</b>}</div></div></Link>}
