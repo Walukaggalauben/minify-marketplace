@@ -1,12 +1,19 @@
 import './globals.css';
-import type { Metadata } from 'next';
+import type {Metadata, Viewport} from 'next';
 
 export const metadata: Metadata = {
-  title: 'MINIFY MARKET | Uganda Gadget Marketplace',
-  description: 'Buy and sell phones, laptops, TVs, accessories and more across Uganda.',
-  icons: { icon: '/logo-market.png' },
+ title: 'MINIFY MARKET | Uganda Marketplace',
+ description: 'Buy and sell vehicles, property, electronics, fashion, services, jobs and more across Uganda.',
+ icons: {icon: '/logo-market.png'},
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
-  return <html lang="en"><body>{children}</body></html>;
+export const viewport: Viewport = {
+ width: 'device-width',
+ initialScale: 1,
+ viewportFit: 'cover',
+ themeColor: '#087f5b',
+};
+
+export default function RootLayout({children}:{children:React.ReactNode}) {
+ return <html lang="en"><body>{children}</body></html>;
 }
