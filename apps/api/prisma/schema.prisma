@@ -243,6 +243,8 @@ model User {
   subscriptionPlan                         String?
   subscriptionStartedAt                    DateTime?
   subscriptionStatus                       String                @default("NONE")
+  passwordResetTokenHash                   String?
+  passwordResetExpiresAt                   DateTime?
   ads                                      Ad[]
   buyerConversations                      Conversation[]        @relation("Conversation_buyerIdToUser")
   sellerConversations                     Conversation[]        @relation("Conversation_sellerIdToUser")
