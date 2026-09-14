@@ -243,6 +243,8 @@ model User {
   subscriptionPlan                         String?
   subscriptionStartedAt                    DateTime?
   subscriptionStatus                       String                @default("NONE")
+  flutterwaveSubaccountId                 String?
+  flutterwaveSubaccountStatus             String                @default("NOT_CONFIGURED")
   passwordResetTokenHash                   String?
   passwordResetExpiresAt                   DateTime?
   ads                                      Ad[]
