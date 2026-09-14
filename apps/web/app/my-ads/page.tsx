@@ -21,7 +21,7 @@ export default function MyAds(){
    {visible.map(a=><article className="managed-ad" key={a.id}>
     <Link href={'/ad/'+a.id} className="managed-ad-main"><div className="managed-ad-image"><img src={mediaUrl(a.images?.[0]?.url||'/logo-market.png')} alt={a.title}/><span>{a.images?.length||0} photos</span></div>
     <div className="managed-ad-copy"><div className="managed-ad-top"><strong>{money(a.price)}</strong><span className={'status status-'+String(a.status).toLowerCase()}>{String(a.status).replace('_',' ')}</span></div><h2>{a.title}</h2><p>{a.city}{a.location?' · '+a.location:''}</p>
-    <div className="managed-ad-stats"><span><Eye size={15}/> {a.views||0} views</span><span><Heart size={15}/> Saved</span><span><MessageCircle size={15}/> Messages</span><span><Clock size={15}/> {new Date(a.createdAt).toLocaleDateString()}</span></div>
+    <div className="managed-ad-stats"><span><Eye size={15}/> {a.views||0} views</span><span><Heart size={15}/> {a._count?.favorites||0} saved</span><span><MessageCircle size={15}/> {a._count?.conversations||0} chats</span><span><Clock size={15}/> {new Date(a.createdAt).toLocaleDateString()}</span></div>
     {a.status==='REJECTED'&&<div className="moderation-note"><b>Needs attention:</b> {a.moderationNote||'Review the advert details and submit again.'}</div>}</div></Link>
     <div className="managed-ad-actions">
      {a.status==='ACTIVE'&&<><Link href={'/sell/'+a.id} className="btn outline">Edit</Link><Link href={'/sell/'+a.id+'?promote=1'} className="btn outline">Promote</Link><button className="btn outline" onClick={()=>sold(a.id)}><CheckCircle size={15}/> Mark sold</button></>}

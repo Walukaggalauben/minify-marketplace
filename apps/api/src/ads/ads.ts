@@ -32,7 +32,7 @@ export class AdsController {
   return {items,total,page,limit,pages:Math.ceil(total/limit)};
  }
  @UseGuards(JwtAuthGuard) @Get("mine")
- async mine(@Request() req:any){return this.db.ad.findMany({where:{sellerId:req.user.sub},include:{images:true,category:true},orderBy:{createdAt:"desc"}})}
+ async mine(@Request() req:any){return this.db.ad.findMany({where:{sellerId:req.user.sub},include:{images:true,category:true,_count:{select:{favorites:true,conversations:true,orders:true}}},orderBy:{createdAt:"desc"}})}
  @UseGuards(JwtAuthGuard) @Get("manage/:id")
  async manage(@Param("id") id:string,@Request() req:any){
   const ad=await this.db.ad.findUnique({where:{id},include:{images:true,category:true}});
