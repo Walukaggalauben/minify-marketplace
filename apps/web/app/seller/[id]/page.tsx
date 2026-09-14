@@ -1,7 +1,7 @@
 'use client';
 import {useEffect,useState} from 'react';
 import Header from '../../components/Header';
-import {API,api} from '../../lib';
+import {API,api,mediaUrl,money} from '../../lib';
 import Link from 'next/link';
 import {BadgeCheck,Star,MapPin,MessageCircle,Phone,ShieldCheck} from 'lucide-react';
 
@@ -16,7 +16,7 @@ export default function SellerPage({params}:{params:Promise<{id:string}>}){
  return <><Header/><main className="container section">{err&&<div className="notice">{err}</div>}
  {seller?<>
  <section className="seller-profile panel">
- <div className="seller-avatar">{seller.avatarUrl?<img src={seller.avatarUrl} alt=""/>:seller.name?.charAt(0).toUpperCase()}</div>
+ <div className="seller-avatar">{seller.avatarUrl?<img src={mediaUrl(seller.avatarUrl)} alt=""/>:seller.name?.charAt(0).toUpperCase()}</div>
  <div className="seller-profile-info"><h1>{seller.name} {seller.verified&&<BadgeCheck size={21}/>}</h1>
  <p className="muted"><MapPin size={14}/> {seller.city||'Uganda'} · Member since {new Date(seller.createdAt).toLocaleDateString()}</p>
  <div className="rating"><Star size={17} fill="currentColor"/> {avg?avg.toFixed(1):'New'} {avg>0&&<span aria-label={`${stars} out of 5 stars`}>{'★'.repeat(stars)}{'☆'.repeat(5-stars)}</span>} <span className="muted">({reviews.length} reviews)</span></div></div>
@@ -24,7 +24,7 @@ export default function SellerPage({params}:{params:Promise<{id:string}>}){
  </section>
  <div className="seller-trust"><span><ShieldCheck size={15}/> {seller.verified?'Verified seller':'Seller profile'}</span><span>✓ {ads.length} active advert{ads.length===1?'':'s'}</span><span>✓ {reviews.length} buyer review{reviews.length===1?'':'s'}</span></div>
  <section className="section"><div className="section-head"><div><span className="eyebrow">SELLER LISTINGS</span><h2>Active adverts</h2></div></div>
- {ads.length?<div className="grid">{ads.map(a=><Link className="listing" key={a.id} href={'/ad/'+a.id}><div className="listing-image"><img src={a.images?.[0]?.url||'/logo-market.png'} alt=""/></div><div className="listing-body"><div className="price">UGX {Number(a.price).toLocaleString()}</div><b className="listing-title">{a.title}</b><span className="muted">{a.city||'Uganda'}</span></div></Link>)}</div>:<div className="empty">This seller has no active adverts right now.</div>}</section>
+ {ads.length?<div className="grid">{ads.map(a=><Link className="listing" key={a.id} href={'/ad/'+a.id}><div className="listing-image"><img src={mediaUrl(a.images?.[0]?.url||'/logo-market.png')} alt=""/></div><div className="listing-body"><div className="price">UGX {Number(a.price).toLocaleString()}</div><b className="listing-title">{a.title}</b><span className="muted">{a.city||'Uganda'}</span></div></Link>)}</div>:<div className="empty">This seller has no active adverts right now.</div>}</section>
  <section className="panel"><h2>Buyer feedback</h2>{reviews.length?reviews.map(r=><article className="review" key={r.id}><div className="rating">{'★'.repeat(Number(r.rating))}{'☆'.repeat(5-Number(r.rating))}</div><b>{r.reviewer?.name||'Buyer'}</b><p className="muted">{r.comment||'No comment.'}</p></article>):<p className="muted">No feedback yet.</p>}</section>
  </>:<div className="empty">Loading seller profile...</div>}</main></>;
 }
