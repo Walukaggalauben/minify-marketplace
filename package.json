@@ -3,5 +3,6 @@
   "private":true,
   "packageManager":"pnpm@10.15.0",
   "scripts":{"dev":"concurrently -k \"pnpm --filter web dev\" \"pnpm --filter api start:dev\"","build":"pnpm -r build","db:push":"pnpm --filter api prisma db push","db:seed":"pnpm --filter api prisma db seed","format":"prettier --write ."},
-  "devDependencies":{"concurrently":"^9.2.1","prettier":"^3.6.2"}
+  "devDependencies":{"concurrently":"^9.2.1","prettier":"^3.6.2"},
+  "pnpm":{"overrides":{"deepmerge-ts":"^8.0.0","multer":"^2.3.0"}}
 }
