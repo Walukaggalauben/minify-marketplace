@@ -6,17 +6,18 @@ import {api,money,mediaUrl} from '../lib';
 import {Heart,SlidersHorizontal,Search,MapPin,ShieldCheck,Grid3X3,List,ArrowUpDown} from 'lucide-react';
 
 type Ad=any;
-const cats=['All categories','Phones & Tablets','Mobile Phones','Accessories','Laptops & Computers','TV & Video','Audio','Wearables','Gaming','Home & Living','Vehicles'];
+const fallbackCats=['Phones & Tablets','Vehicles','Property','Electronics','Home, Furniture & Appliances','Fashion','Beauty & Personal Care','Services','Jobs & Work','Babies & Kids','Food, Agriculture & Farming','Animals & Pets','Commercial Equipment & Tools','Leisure & Activities','Business & Industry'];
 const conditions=['Any condition','New','Used','Refurbished'];
 const cities=['All Uganda','Kampala','Wakiso','Mukono','Entebbe','Jinja','Mbarara'];
 
 export default function AdsPage(){
- const [items,setItems]=useState<Ad[]>([]),[loading,setLoading]=useState(true),[error,setError]=useState('');
+ const [items,setItems]=useState<Ad[]>([]),[loading,setLoading]=useState(true),[error,setError]=useState(''); const [categories,setCategories]=useState<any[]>([]);
  const [q,setQ]=useState(''),[category,setCategory]=useState('All categories'),[city,setCity]=useState('All Uganda');
  const [condition,setCondition]=useState('Any condition'),[min,setMin]=useState(''),[max,setMax]=useState('');
  const [sort,setSort]=useState('createdAt'),[view,setView]=useState<'grid'|'list'>('grid'),[page,setPage]=useState(1),[total,setTotal]=useState(0);
  const limit=24;
- useEffect(()=>{const p=new URLSearchParams(location.search);setQ(p.get('q')||'');setCategory(p.get('category')||'All categories');},[]);
+ const cats=['All categories',...(categories.length?categories.flatMap(c=>[c.name,...(c.children||[]).map((x:any)=>x.name)]):fallbackCats)];
+ useEffect(()=>{const p=new URLSearchParams(location.search);setQ(p.get('q')||'');setCategory(p.get('category')||'All categories');api('/categories').then((x:any[])=>setCategories(Array.isArray(x)?x:[])).catch(()=>{});},[]);
  useEffect(()=>{load();},[q,category,city,condition,min,max,sort,page]);
  async function load(){setLoading(true);setError('');try{const p=new URLSearchParams({limit:String(limit),page:String(page),sort,order:sort==='price'?'asc':'desc'});if(q)p.set('q',q);if(category!=='All categories')p.set('category',category);if(city!=='All Uganda')p.set('city',city);if(condition!=='Any condition')p.set('condition',condition.toUpperCase());if(min)p.set('minPrice',min);if(max)p.set('maxPrice',max);const d=await api('/ads?'+p.toString());setItems(Array.isArray(d)?d:(d.items||[]));setTotal(Number(d.total||d.count||0));}catch(e:any){setError(e.message||'Could not load adverts.');}finally{setLoading(false);}}
  function reset(){setQ('');setCategory('All categories');setCity('All Uganda');setCondition('Any condition');setMin('');setMax('');setPage(1);}
@@ -30,7 +31,7 @@ export default function AdsPage(){
    <div className="price-fields"><label>Min price<input inputMode="numeric" value={min} onChange={e=>setMin(e.target.value)} placeholder="UGX"/></label><label>Max price<input inputMode="numeric" value={max} onChange={e=>setMax(e.target.value)} placeholder="UGX"/></label></div>
    <button className="btn primary full" type="button" onClick={()=>{setPage(1);load()}}><SlidersHorizontal size={17}/> Apply filters</button>
   </aside>
-  <section className="results"><div className="results-bar"><div><b>{loading?'Finding products…':total?`${total.toLocaleString()} adverts`:`${items.length} adverts`}</b>{q&&<span className="muted"> for “{q}”</span>}</div><label className="sort"><ArrowUpDown size={16}/><select value={sort} onChange={e=>{setSort(e.target.value);setPage(1)}}><option value="createdAt">Newest</option><option value="price">Lowest price</option><option value="views">Most viewed</option></select></label></div>
+  <section className="results"><div className="results-bar"><div><b>{loading?'Finding productsÃ¢â‚¬Â¦':total?`${total.toLocaleString()} adverts`:`${items.length} adverts`}</b>{q&&<span className="muted"> for Ã¢â‚¬Å“{q}Ã¢â‚¬Â</span>}</div><label className="sort"><ArrowUpDown size={16}/><select value={sort} onChange={e=>{setSort(e.target.value);setPage(1)}}><option value="createdAt">Newest</option><option value="price">Lowest price</option><option value="views">Most viewed</option></select></label></div>
    {error&&<div className="notice">{error}</div>}
    {loading?<div className="grid">{Array.from({length:8}).map((_,i)=><div className="listing skeleton-card" key={i}/>)}</div>:items.length?<div className={view==='grid'?'grid':'listing-results'}>{items.map(a=><AdCard key={a.id} ad={a} list={view==='list'}/>)}</div>:<div className="empty browse-empty"><Search size={30}/><h3>No adverts found</h3><p>Try a different search or remove some filters.</p><button className="btn outline" onClick={reset}>Clear filters</button></div>}
    {!loading&&items.length>=limit&&<div className="pagination"><button className="btn outline" disabled={page===1} onClick={()=>setPage(p=>p-1)}>Previous</button><span>Page {page}</span><button className="btn outline" onClick={()=>setPage(p=>p+1)}>Next</button></div>}

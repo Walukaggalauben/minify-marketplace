@@ -20,7 +20,7 @@ export class AdsController {
   const where:any={status:"ACTIVE",OR:[{expiresAt:null},{expiresAt:{gt:now}}]};
   if(q.q)where.AND=[{OR:[{title:{contains:String(q.q),mode:"insensitive"}},{description:{contains:String(q.q),mode:"insensitive"}}]}];
   if(q.categoryId)where.categoryId=String(q.categoryId);
-  if(q.category&&!q.categoryId){const category=await this.db.category.findFirst({where:{name:{equals:String(q.category),mode:"insensitive"}}});if(category)where.categoryId=category.id;else return {items:[],total:0,page:1,limit:Math.min(48,Math.max(1,Number(q.limit)||24)),pages:0};}
+  if(q.category&&!q.categoryId){const category=await this.db.category.findFirst({where:{name:{equals:String(q.category),mode:"insensitive"}}});if(category)where.OR=[{categoryId:category.id},{category:{parentId:category.id}}];else return {items:[],total:0,page:1,limit:Math.min(48,Math.max(1,Number(q.limit)||24)),pages:0};}
   if(q.sellerId)where.sellerId=String(q.sellerId);
   if(q.condition)where.condition=String(q.condition);
   if(q.city)where.city={contains:String(q.city),mode:"insensitive"};
