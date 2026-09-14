@@ -81,7 +81,15 @@ export class AdsController {
  @UseGuards(JwtAuthGuard) @Post(":id/publish")
  async publish(@Param("id") id:string,@Request() req:any){await this.assertSellerAccess(req);const e=await this.db.ad.findUnique({where:{id},select:{sellerId:true}});if(!e)throw new NotFoundException("Advert not found.");if(e.sellerId!==req.user.sub&&!['ADMIN','MODERATOR'].includes(req.user.role))throw new ForbiddenException("You cannot publish this advert.");return this.db.ad.update({where:{id},data:{status:"PENDING_REVIEW",publishedAt:null}});}
  @UseGuards(JwtAuthGuard) @Post(":id/sold")
- async sold(@Param("id") id:string,@Request() req:any){const e=await this.db.ad.findUnique({where:{id},select:{sellerId:true}});if(!e)throw new NotFoundException("Advert not found.");if(e.sellerId!==req.user.sub&&!['ADMIN','MODERATOR'].includes(req.user.role))throw new ForbiddenException("You cannot change this advert.");return this.db.ad.update({where:{id},data:{status:"SOLD"}});}
+ async sold(@Param("id") id:string,@Request() req:any){const e=await this.db.ad.findUnique({where:{id},select:{sellerId:true,status:true}});if(!e)throw new NotFoundException("Advert not found.");if(e.sellerId!==req.user.sub&&!['ADMIN','MODERATOR'].includes(req.user.role))throw new ForbiddenException("You cannot change this advert.");return this.db.ad.update({where:{id},data:{status:"SOLD"}});}
+ @UseGuards(JwtAuthGuard) @Post(":id/renew")
+ async renew(@Param("id") id:string,@Request() req:any){
+  const ad=await this.db.ad.findUnique({where:{id},select:{sellerId:true,status:true}});
+  if(!ad)throw new NotFoundException("Advert not found.");
+  if(ad.sellerId!==req.user.sub&&!['ADMIN','MODERATOR'].includes(req.user.role))throw new ForbiddenException("You cannot renew this advert.");
+  if(!['EXPIRED','REJECTED'].includes(ad.status))throw new ForbiddenException("Only expired or rejected adverts can be renewed.");
+  return this.db.ad.update({where:{id},data:{status:"PENDING_REVIEW",publishedAt:null,expiresAt:null}});
+ }
  @Post(":id/view")
  async view(@Param("id") id:string){return this.db.ad.update({where:{id},data:{views:{increment:1}}});}
 }

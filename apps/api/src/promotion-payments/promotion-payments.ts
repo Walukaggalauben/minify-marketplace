@@ -1,4 +1,4 @@
-import {Body,Controller,ForbiddenException,Headers,Post,Request,UseGuards} from '@nestjs/common';
+import {Body,Controller,ForbiddenException,Get,Headers,Post,Request,UseGuards} from '@nestjs/common';
 import {randomUUID} from 'crypto';
 import {PrismaService} from '../prisma.service';
 import {JwtAuthGuard} from '../auth/auth.guard';
@@ -35,6 +35,22 @@ export class PromotionPaymentsController{
   const data:any=await response.json();
   if(!response.ok||data?.status!=='success')return {ok:false,paymentId:payment.id,amount,currency:'UGX',message:data?.message||'Could not initiate Mobile Money payment.'};
   return {ok:true,paymentId:payment.id,promotionId:promotion.id,txRef,amount,currency:'UGX',authorization:data?.meta?.authorization||null,message:'Approve the Mobile Money payment on your phone.'};
+ }
+ @UseGuards(JwtAuthGuard)
+ @Get('mine')
+ async mine(@Request() req:any){
+  return this.db.promotion.findMany({where:{sellerId:req.user.sub},include:{Ad:{select:{id:true,title:true,images:{take:1,orderBy:{sortOrder:'asc'}}}},},orderBy:{createdAt:'desc'},take:50});
+ }
+ @UseGuards(JwtAuthGuard)
+ @Post('cancel')
+ async cancel(@Body() body:any,@Request() req:any){
+  const p=await this.db.promotion.findUnique({where:{id:String(body.promotionId)},select:{id:true,sellerId:true,status:true,adId:true,type:true}});
+  if(!p)throw new ForbiddenException('Promotion not found.');
+  if(p.sellerId!==req.user.sub&&req.user.role!=='ADMIN')throw new ForbiddenException('You cannot manage this promotion.');
+  if(p.status!=='ACTIVE')throw new ForbiddenException('Only active promotions can be paused.');
+  await this.db.promotion.update({where:{id:p.id},data:{status:'CANCELLED'}});
+  await this.db.ad.update({where:{id:p.adId},data:{[p.type==='BOOST'?'boostUntil':'featuredUntil']:new Date()}});
+  return {ok:true};
  }
  @Post('webhook')
  async webhook(@Body() body:any,@Headers('verif-hash') verifHash?:string){

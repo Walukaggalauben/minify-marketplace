@@ -1,0 +1,22 @@
+'use client';
+import {useEffect,useMemo,useState} from 'react';
+import Link from 'next/link';
+import Header from '../components/Header';
+import {api,mediaUrl,money} from '../lib';
+import {ArrowLeft,BarChart3,CalendarDays,CheckCircle,CircleDollarSign,Megaphone,Pause,Play,Plus,ShieldCheck} from 'lucide-react';
+
+export default function ProSales(){
+ const [items,setItems]=useState<any[]>([]),[loading,setLoading]=useState(true),[msg,setMsg]=useState('');
+ async function load(){try{const x=await api('/promotion-payments/mine');setItems(Array.isArray(x)?x:[])}catch(e:any){setMsg(e?.message||'Could not load promotion activity.')}finally{setLoading(false)}}
+ useEffect(()=>{if(!localStorage.getItem('minify_token')){location.href='/login?next=/pro-sales';return}load()},[]);
+ const active=items.filter(p=>p.status==='ACTIVE'&&new Date(p.endsAt)>new Date());
+ const spent=useMemo(()=>items.filter(p=>p.status==='ACTIVE'||p.status==='CANCELLED').reduce((n,p)=>n+Number(p.amount||0),0),[items]);
+ async function pause(id:string){try{await api('/promotion-payments/cancel',{method:'POST',body:JSON.stringify({promotionId:id})});await load()}catch(e:any){setMsg(e?.message||'Could not pause promotion.')}}
+ return <><Header/><main className="page-shell"><div className="page-title"><Link href="/dashboard" className="back-link"><ArrowLeft size={17}/> Seller dashboard</Link><span className="eyebrow">SELLER GROWTH</span><h1>MINIFY Promote</h1><p className="muted">Put your best adverts in front of more relevant buyers without changing the marketplace experience.</p></div>
+ <section className="promo-hero"><div><span className="eyebrow">PROMOTION CENTRE</span><h2>Turn visibility into conversations.</h2><p>Choose an active advert, select a promotion and pay securely by Mobile Money.</p><Link href="/my-ads" className="btn primary"><Plus size={17}/> Choose an advert</Link></div><div className="promo-hero-icon"><Megaphone size={52}/><b>{active.length}</b><span>active promotions</span></div></section>
+ <div className="promotion-summary"><div><CircleDollarSign/><span>Total promotion spend</span><b>{money(spent)}</b></div><div><BarChart3/><span>Active campaigns</span><b>{active.length}</b></div><div><ShieldCheck/><span>Verified billing</span><b>Mobile Money</b></div></div>
+ <div className="section-head-row"><div><span className="eyebrow">CAMPAIGNS</span><h2>Your promotions</h2></div><Link href="/my-ads" className="btn outline">Promote an advert</Link></div>
+ {msg&&<div className="notice">{msg}</div>}{loading?<div className="surface surface-pad empty">Loading campaigns…</div>:items.length===0?<div className="surface surface-pad empty"><Megaphone size={38}/><h3>No campaigns yet</h3><p className="muted">Promote an active advert to give it extra visibility.</p><Link href="/my-ads" className="btn primary">Choose an advert</Link></div>:<div className="promotion-history">{items.map(p=><article className="promotion-record" key={p.id}><div className="promotion-record-image"><img src={mediaUrl(p.Ad?.images?.[0]?.url||'/logo-market.png')} alt=""/></div><div className="promotion-record-main"><div className="promotion-record-top"><b>{p.Ad?.title||'Advert'}</b><span className={'status status-'+String(p.status).toLowerCase()}>{p.status.replace('_',' ')}</span></div><strong>{p.type==='FEATURED'?'Featured':'Boost'}</strong><p>{money(p.amount)} · {new Date(p.startsAt).toLocaleDateString()} — {new Date(p.endsAt).toLocaleDateString()}</p><div className="promotion-progress"><span style={{width:`${Math.max(4,Math.min(100,((Date.now()-new Date(p.startsAt).getTime())/(new Date(p.endsAt).getTime()-new Date(p.startsAt).getTime()))*100))}%`}}/></div></div><div className="promotion-record-action">{p.status==='ACTIVE'&&new Date(p.endsAt)>new Date()&&<button className="btn outline" onClick={()=>pause(p.id)}><Pause size={15}/> Pause</button>}{p.status==='CANCELLED'&&<span className="muted">Paused</span>}{p.status==='PENDING_PAYMENT'&&<span className="muted">Payment pending</span>}</div></article>)}</div>}
+ <section className="surface surface-pad promo-faq"><div><CalendarDays/><h2>How MINIFY Promote works</h2></div><ol><li>Choose an active advert.</li><li>Select <b>Boost</b> or <b>Featured</b> and your duration.</li><li>Pay using MTN or Airtel Mobile Money.</li><li>Promotion activates only after payment verification.</li></ol><p className="muted">Boost: UGX 5,000 per 3 days. Featured: UGX 15,000 per 7 days. Live payment activation depends on the configured Flutterwave gateway.</p></section>
+ </main></>;
+}
