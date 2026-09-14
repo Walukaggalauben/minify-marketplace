@@ -7,6 +7,7 @@ import { AppModule } from './app.module';
 async function bootstrap(){
  const app=await NestFactory.create<NestExpressApplication>(AppModule);
  const isProduction=process.env.NODE_ENV==='production';
+ if(isProduction&&!process.env.CORS_ORIGINS) throw new Error('CORS_ORIGINS must be configured in production.');
  const origins=(process.env.CORS_ORIGINS||'http://localhost:3000').split(',').map(x=>x.trim()).filter(Boolean);
  app.enableCors({origin:(origin,callback)=>{
    if(!origin||origins.includes(origin)) return callback(null,true);
