@@ -5,6 +5,9 @@ import Header from '../../components/Header';
 import ImageUploader from '../../components/ImageUploader';
 import { api,API,mediaUrl } from '../../lib';
 import PromotionPanel from '../../components/PromotionPanel';
+import {COLORS,PHONE_BRANDS,PHONE_MODELS,CAR_MAKES,VEHICLE_MODELS,LAPTOP_BRANDS,PROCESSORS,SCREEN_SIZES,NETWORKS,SIM_OPTIONS} from '../catalog';
+
+const RULES:any={'Mobile Phones':[{key:'brand',label:'Brand',options:PHONE_BRANDS},{key:'model',label:'Model',options:[]},{key:'storage',label:'Storage',options:['32 GB','64 GB','128 GB','256 GB','512 GB','1 TB']},{key:'ram',label:'RAM',options:['4 GB','6 GB','8 GB','12 GB','16 GB']},{key:'color',label:'Color',options:COLORS},{key:'network',label:'Network',options:NETWORKS},{key:'sim',label:'SIM',options:SIM_OPTIONS}], 'Cars':[{key:'make',label:'Make',options:CAR_MAKES},{key:'model',label:'Model',options:[]},{key:'year',label:'Year',type:'number'},{key:'mileage',label:'Mileage (km)',type:'number'}], 'Laptops & Computers':[{key:'brand',label:'Brand',options:LAPTOP_BRANDS},{key:'model',label:'Model'},{key:'processor',label:'Processor',options:PROCESSORS},{key:'ram',label:'RAM',options:['4 GB','8 GB','16 GB','32 GB','64 GB']},{key:'storage',label:'Storage',options:['128 GB','256 GB','512 GB','1 TB','2 TB']},{key:'screenSize',label:'Screen size',options:SCREEN_SIZES}]};
 
 export default function EditAdvert(){
  const {id}=useParams<{id:string}>(); const [f,setF]=useState<any>(null); const [cats,setCats]=useState<any[]>([]); const [newFiles,setNewFiles]=useState<File[]>([]); const [msg,setMsg]=useState(''); const [busy,setBusy]=useState(false);
@@ -17,9 +20,11 @@ export default function EditAdvert(){
   if(!r.ok)throw new Error(await r.text());return (await r.json()).images||[];
  }
  async function removeImage(imageId:string){if(!confirm('Remove this photo?'))return;try{setBusy(true);await api('/ads/images/'+imageId,{method:'DELETE'});const fresh=await api('/ads/manage/'+id);setF({...fresh,categoryId:fresh.category?.id||fresh.categoryId});setMsg('Photo removed.')}catch(err:any){setMsg(err.message||'Could not remove photo.')}finally{setBusy(false)}}
- async function save(e:FormEvent){e.preventDefault();setBusy(true);setMsg('');try{await api('/ads/'+id,{method:'PATCH',body:JSON.stringify({title:f.title,categoryId:f.categoryId,price:Number(f.price),condition:f.condition,city:f.city,location:f.location,description:f.description,negotiable:Boolean(f.negotiable)})});setMsg('Advert updated successfully.')}catch(e:any){setMsg(e.message||'Could not update advert.')}finally{setBusy(false)}}
+ async function save(e:FormEvent){e.preventDefault();setBusy(true);setMsg('');try{await api('/ads/'+id,{method:'PATCH',body:JSON.stringify({title:f.title,categoryId:f.categoryId,price:Number(f.price),condition:f.condition,city:f.city,location:f.location,description:f.description,negotiable:Boolean(f.negotiable),attributes:f.attributes||{}})});setMsg('Advert updated successfully.')}catch(e:any){setMsg(e.message||'Could not update advert.')}finally{setBusy(false)}}
  if(!f)return <><Header/><main className="container section"><div className="empty">Loading advert…</div></main></>;
  const flat=cats.flatMap(c=>[c,...(c.children||[])]);
+ const ruleFields=RULES[f.category?.name||'']||[];
+ const options=(x:any)=>x.key==='model'&&f.category?.name==='Mobile Phones'?PHONE_MODELS[f.attributes?.brand]||['Other']:x.key==='model'&&f.category?.name==='Cars'?VEHICLE_MODELS[f.attributes?.make]||['Other']:x.options||[];
  const images=f.images||[];
  return <><Header/><main className="container section"><div className="panel sell-panel"><div className="eyebrow">SELLER CENTER</div><h1>Edit advert</h1><p className="muted">Update the details of your listing. Changes are saved to your advert.</p>
  <form className="form" onSubmit={save}><label>Title<input required value={f.title||''} onChange={e=>set('title',e.target.value)}/></label><label>Category<select required value={f.categoryId||''} onChange={e=>set('categoryId',e.target.value)}><option value="">Choose category</option>{flat.map(c=><option key={c.id} value={c.id}>{c.parentId?'↳ ':''}{c.name}</option>)}</select></label>
