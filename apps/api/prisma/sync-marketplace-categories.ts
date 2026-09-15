@@ -17,13 +17,14 @@ const tree:Record<string,string[]>={
   "Leisure & Activities":["Sports Equipment","Musical Instruments","Books & Hobbies"],
   "Business & Industry":["Business Opportunities","Office & Retail","Other Business & Industry"]
 };
-const slug=(s:string)=>s.toLowerCase().replace(/&/g,'and').replace(/['’]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+const slug=(s:string)=>s.toLowerCase().replace(/&/g,'').replace(/['â€™]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+const ensure=async(name:string,parentId:string)=>{const s=slug(name);const existing=await db.category.findFirst({where:{slug:s}});if(existing){if(existing.parentId!==parentId||existing.name!==name)return db.category.update({where:{id:existing.id},data:{name,parentId}});return existing;}return db.category.create({data:{name,slug:s,parentId}})};
 async function main(){
  const roots=await db.category.findMany({where:{parentId:null}});
  const byName=new Map(roots.map(r=>[r.name,r]));
  const pets=byName.get('Animals & Pets'); if(pets){await db.category.update({where:{id:pets.id},data:{name:'Pets',slug:'pets'}});byName.delete('Animals & Pets');byName.set('Pets',{...pets,name:'Pets',slug:'pets'} as any);}
  for(const [rootName,names] of Object.entries(tree)){let root=byName.get(rootName);if(!root && rootName==='Pets')root=await db.category.findUnique({where:{slug:'pets'}})||undefined;if(!root)continue;
-   for(const name of names){const s=slug(name);await db.category.upsert({where:{slug:s},update:{name,parentId:root.id},create:{name,slug:s,parentId:root.id}})}
+   for(const name of names){await ensure(name,root.id)}
  }
  const deeper:Record<string,string[]>={
   "Phone & Tablet Accessories":["Chargers & Cables","Cases & Covers","Screen Protectors","Power Banks","Car Chargers"],
@@ -43,7 +44,7 @@ async function main(){
   "Pet Supplies":["Pet Food","Cages & Kennels","Aquariums","Pet Accessories"]
  };
  const all=await db.category.findMany(); const map=new Map(all.map(c=>[c.name,c]));
- for(const [parent,names] of Object.entries(deeper)){const p=map.get(parent);if(!p)continue;for(const name of names){const s=slug(parent+'-'+name);await db.category.upsert({where:{slug:s},update:{name,parentId:p.id},create:{name,slug:s,parentId:p.id}})}}
+ for(const [parent,names] of Object.entries(deeper)){const p=map.get(parent);if(!p)continue;for(const name of names){await ensure(name,p.id)}}
  console.log('Category catalog synced');
 }
 main().catch(e=>{console.error(e);process.exit(1)}).finally(()=>db.$disconnect());
