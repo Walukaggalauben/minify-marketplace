@@ -14,15 +14,13 @@ export default function PaymentCallback(){
   let attempts=0;
   const check=async()=>{
    try{
-    const orders=await api('/orders/mine');
-    const found=orders.find((o:any)=>o.paymentReference===ref);
-    if(found?.paymentStatus==='PAID'){setState('paid');return;}
+    const payment=await api(`/payments/reference/${encodeURIComponent(ref)}`);
+    if(payment?.paymentStatus==='PAID'){setState('paid');return;}
    }catch{}
    attempts+=1;
    if(attempts<6)setTimeout(check,2500);else setState('pending');
   };
-  check();
- },[]);
+  check(); },[]);
  return <><Header/><main className="container section"><div className="panel payment-result">
   {state==='checking'&&<><span className="eyebrow">PAYMENT</span><h1>Confirming your payment…</h1><p className="muted">We are checking the secure payment result. Please keep this page open.</p></>}
   {state==='paid'&&<><span className="eyebrow">PAYMENT CONFIRMED</span><h1>Payment successful</h1><p className="muted">Your payment has been verified. Your order is now recorded as paid.</p><Link className="btn primary" href="/orders">View my order</Link></>}

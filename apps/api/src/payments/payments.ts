@@ -63,6 +63,15 @@ export class PaymentsController {
  }
 
  @UseGuards(JwtAuthGuard)
+ @Get('reference/:reference')
+ async byReference(@Param('reference') reference:string,@Request() req:any){
+  const order=await this.db.order.findFirst({where:{paymentReference:reference},select:{id:true,buyerId:true,sellerId:true,paymentStatus:true,paymentMethod:true,total:true,paymentProvider:true,paymentReference:true}});
+  if(!order)throw new NotFoundException('Payment reference not found.');
+  if(order.buyerId!==req.user.sub&&order.sellerId!==req.user.sub)throw new ForbiddenException('Payment access denied.');
+  return order;
+ }
+
+ @UseGuards(JwtAuthGuard)
  @Get(':orderId')
  async one(@Param('orderId') orderId:string,@Request() req:any){
   const order=await this.db.order.findUnique({where:{id:orderId},select:{id:true,buyerId:true,sellerId:true,paymentStatus:true,paymentMethod:true,total:true,paymentProvider:true,paymentReference:true}});
