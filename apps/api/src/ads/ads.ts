@@ -57,26 +57,26 @@ export class AdsController {
  @UseGuards(JwtAuthGuard) @Post()
  async create(@Body() data:any,@Request() req:any){
   await this.assertSellerAccess(req);
-  const {images,sellerId:_s,id:_i,status:_st,publishedAt:_p,...x}=data;
+  const {images,attributes,sellerId:_s,id:_i,status:_st,publishedAt:_p,...x}=data;
   const title=String(x.title||"").trim(),description=String(x.description||"").trim();
   if(title.length<5)throw new ForbiddenException("Title must be at least 5 characters.");
   if(description.length<10)throw new ForbiddenException("Description must be at least 10 characters.");
   if(!x.categoryId)throw new ForbiddenException("Category is required.");
   const price=Number(x.price);if(!Number.isFinite(price)||price<0)throw new ForbiddenException("Enter a valid price.");
   const category=await this.db.category.findUnique({where:{id:String(x.categoryId)}});if(!category)throw new NotFoundException("Category not found.");
-  return this.db.ad.create({data:{...x,title,description,sellerId:req.user.sub,slug:x.slug||`${title.toLowerCase().replace(/[^a-z0-9]+/g,"-")}-${Date.now()}`,price,images:Array.isArray(images)?{create:images.filter((u:any)=>typeof u==="string"&&u.trim()).map((url:string,i:number)=>({url:url.trim(),sortOrder:i}))}:undefined},include:{images:true,seller:{select:{id:true,name:true}}}});
+  return this.db.ad.create({data:{...x,title,description,sellerId:req.user.sub,slug:x.slug||`${title.toLowerCase().replace(/[^a-z0-9]+/g,"-")}-${Date.now()}`,price,attributes:attributes&&typeof attributes==="object"?attributes:undefined,images:Array.isArray(images)?{create:images.filter((u:any)=>typeof u==="string"&&u.trim()).map((url:string,i:number)=>({url:url.trim(),sortOrder:i}))}:undefined},include:{images:true,seller:{select:{id:true,name:true}}}});
  }
  @UseGuards(JwtAuthGuard) @Patch(":id")
  async update(@Param("id") id:string,@Body() data:any,@Request() req:any){
   const e=await this.db.ad.findUnique({where:{id},select:{sellerId:true}});
   if(!e)throw new NotFoundException("Advert not found.");
   if(e.sellerId!==req.user.sub&&!['ADMIN','MODERATOR'].includes(req.user.role))throw new ForbiddenException("You cannot edit this advert.");
-  const {sellerId:_s,id:_i,status:_st,publishedAt:_p,images:_im,slug:_slug,...safe}=data;
+  const {sellerId:_s,id:_i,status:_st,publishedAt:_p,images:_im,slug:_slug,attributes,...safe}=data;
   if(safe.title!==undefined&&String(safe.title).trim().length<5)throw new ForbiddenException("Title must be at least 5 characters.");
   if(safe.description!==undefined&&String(safe.description).trim().length<10)throw new ForbiddenException("Description must be at least 10 characters.");
   if(safe.price!==undefined){const price=Number(safe.price);if(!Number.isFinite(price)||price<0)throw new ForbiddenException("Enter a valid price.");safe.price=price;}
   if(safe.categoryId!==undefined){const category=await this.db.category.findUnique({where:{id:String(safe.categoryId)}});if(!category)throw new NotFoundException("Category not found.");}
-  return this.db.ad.update({where:{id},data:safe,include:{images:true,seller:{select:{id:true,name:true}}}});
+  return this.db.ad.update({where:{id},data:{...safe, ...(attributes===undefined?{}:{attributes:attributes&&typeof attributes==="object"?attributes:null})},include:{images:true,seller:{select:{id:true,name:true}}}});
  }
  @UseGuards(JwtAuthGuard) @Post(":id/publish")
  async publish(@Param("id") id:string,@Request() req:any){await this.assertSellerAccess(req);const e=await this.db.ad.findUnique({where:{id},select:{sellerId:true}});if(!e)throw new NotFoundException("Advert not found.");if(e.sellerId!==req.user.sub&&!['ADMIN','MODERATOR'].includes(req.user.role))throw new ForbiddenException("You cannot publish this advert.");return this.db.ad.update({where:{id},data:{status:"PENDING_REVIEW",publishedAt:null}});}

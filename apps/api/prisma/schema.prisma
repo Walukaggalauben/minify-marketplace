@@ -19,6 +19,7 @@ model Ad {
   condition      Condition
   city           String
   location       String?
+  attributes     Json?
   status         AdStatus       @default(DRAFT)
   views          Int            @default(0)
   createdAt      DateTime       @default(now())
