@@ -34,7 +34,7 @@ export const VEHICLE_MODELS:Record<string,string[]>= {
  Toyota:['Premio','Fielder','Harrier','Prado','Land Cruiser','RAV4','Corolla','Vitz','Wish','Noah','Hiace','Hilux','Fortuner','Rush','Sienta','Voxy','Alphard','Other'],
  Subaru:['Forester','Impreza','Legacy','Outback','XV','Crosstrek','WRX','Other'],
  Nissan:['X-Trail','Patrol','Note','Serena','Dualis','Juke','Navara','Tiida','Other'],
- Mercedes-Benz:['C-Class','E-Class','S-Class','GLC','GLE','GLA','GLB','Sprinter','Other'],
+ 'Mercedes-Benz':['C-Class','E-Class','S-Class','GLC','GLE','GLA','GLB','Sprinter','Other'],
  BMW:['3 Series','5 Series','7 Series','X1','X3','X5','X6','Other'],
  Volkswagen:['Golf','Passat','Tiguan','Touareg','Polo','Transporter','Other'],
 };
@@ -69,3 +69,10 @@ export const AD_STATUS_LABELS=['Draft','Pending review','Active','Sold','Expired
 export const NEGOTIATION_OPTIONS=['Price is negotiable','Price is firm'];
 export const REGION_LABEL='Region';
 export const AD_FIELD_PHILOSOPHY='Use structured selections wherever a reliable predefined value exists; allow free text only where the value cannot reasonably be enumerated.';
+export const MARKETPLACE_COUNTRY='Uganda';
+export const DEFAULT_REGION='Central';
+export const DEFAULT_CITY='Kampala';
+export const DATA_VERSION='2026-09-marketplace-fields-v2';
+export const FIELD_SOURCE='MINIFY structured marketplace catalog';
+export const FORM_COMPLETE_INTENT='Category-first, selection-heavy posting flow with dependent model and location choices';
+export const READY_FOR_FILTERING=true;
