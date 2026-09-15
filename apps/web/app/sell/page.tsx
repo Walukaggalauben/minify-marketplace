@@ -9,7 +9,7 @@ import {REGIONS,DISTRICTS_BY_REGION,COLORS,PHONE_BRANDS,PHONE_MODELS,CAR_MAKES,B
 type Category={id:string;name:string;slug:string;parentId:string|null;children?:Category[]};
 type Field={key:string;label:string;type:'text'|'number'|'select'|'textarea';options?:string[];required?:boolean;placeholder?:string};
 
-const FIELD_RULES:Record<string,Field[]>= {
+export const FIELD_RULES:Record<string,Field[]>= {
  'Mobile Phones':[{key:'brand',label:'Brand',type:'select',options:PHONE_BRANDS,required:true},{key:'model',label:'Model',type:'select',options:[],required:true},{key:'storage',label:'Internal storage',type:'select',options:['32 GB','64 GB','128 GB','256 GB','512 GB','1 TB','2 TB'],required:true},{key:'ram',label:'RAM',type:'select',options:['1 GB','2 GB','3 GB','4 GB','6 GB','8 GB','12 GB','16 GB','24 GB'],required:true},{key:'color',label:'Color',type:'select',options:COLORS,required:true},{key:'network',label:'Network',type:'select',options:NETWORKS,required:true},{key:'sim',label:'SIM',type:'select',options:SIM_OPTIONS,required:true}],
  'Tablets':[{key:'brand',label:'Brand',type:'text',required:true},{key:'model',label:'Model',type:'text',required:true},{key:'storage',label:'Storage',type:'select',options:['32 GB','64 GB','128 GB','256 GB','512 GB','1 TB'],required:true},{key:'screenSize',label:'Screen size',type:'text',placeholder:'e.g. 10.9 inch'}],
  'Smart Watches':[{key:'brand',label:'Brand',type:'text',required:true},{key:'model',label:'Model',type:'text',required:true},{key:'compatibility',label:'Compatibility',type:'select',options:['Android','iPhone / iOS','Android & iOS'],required:true}],
