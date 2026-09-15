@@ -17,13 +17,20 @@ export class AdsController {
  } @Get()
  async list(@Query() q:any){
   const now=new Date();
-  const where:any={status:"ACTIVE",OR:[{expiresAt:null},{expiresAt:{gt:now}}]};
-  if(q.q)where.AND=[{OR:[{title:{contains:String(q.q),mode:"insensitive"}},{description:{contains:String(q.q),mode:"insensitive"}}]}];
-  if(q.categoryId)where.categoryId=String(q.categoryId);
-  if(q.category&&!q.categoryId){const category=await this.db.category.findFirst({where:{name:{equals:String(q.category),mode:"insensitive"}}});if(category)where.OR=[{categoryId:category.id},{category:{parentId:category.id}}];else return {items:[],total:0,page:1,limit:Math.min(48,Math.max(1,Number(q.limit)||24)),pages:0};}
-  if(q.sellerId)where.sellerId=String(q.sellerId);
-  if(q.condition)where.condition=String(q.condition);
-  if(q.city)where.city={contains:String(q.city),mode:"insensitive"};
+  const where:any={status:"ACTIVE",AND:[{OR:[{expiresAt:null},{expiresAt:{gt:now}}]}]};
+  if(q.q)where.AND.push({OR:[{title:{contains:String(q.q),mode:"insensitive"}},{description:{contains:String(q.q),mode:"insensitive"}}]});
+  if(q.categoryId)where.AND.push({categoryId:String(q.categoryId)});
+  if(q.category&&!q.categoryId){
+   const category=await this.db.category.findFirst({where:{name:{equals:String(q.category),mode:"insensitive"}}});
+   if(!category)return {items:[],total:0,page:1,limit:Math.min(48,Math.max(1,Number(q.limit)||24)),pages:0};
+   const ids=[category.id]; let parents=[category.id];
+   while(parents.length){const children=await this.db.category.findMany({where:{parentId:{in:parents}},select:{id:true}});const next=children.map(x=>x.id).filter(id=>!ids.includes(id));ids.push(...next);parents=next;}
+   where.AND.push({categoryId:{in:ids}});
+  }
+  if(q.sellerId)where.AND.push({sellerId:String(q.sellerId)});
+  if(q.condition)where.AND.push({condition:String(q.condition)});
+  if(q.city)where.AND.push({city:{contains:String(q.city),mode:"insensitive"}});
+  if(q.attributeKey&&q.attributeValue)where.AND.push({attributes:{path:[String(q.attributeKey)],equals:String(q.attributeValue)}});
   const min=Number(q.minPrice),max=Number(q.maxPrice);
   if(q.minPrice||q.maxPrice)where.price={...(Number.isFinite(min)?{gte:min}:{}),...(Number.isFinite(max)?{lte:max}:{})};
   const allowed=["createdAt","price","views","title"];const sort=allowed.includes(String(q.sort))?String(q.sort):"createdAt";
