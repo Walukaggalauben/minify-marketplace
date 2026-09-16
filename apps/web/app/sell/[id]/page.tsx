@@ -12,7 +12,8 @@ export default function EditAdvert(){
  const {id}=useParams<{id:string}>(); const [f,setF]=useState<any>(null); const [cats,setCats]=useState<any[]>([]); const [newFiles,setNewFiles]=useState<File[]>([]); const [msg,setMsg]=useState(''); const [busy,setBusy]=useState(false);
  useEffect(()=>{api('/ads/manage/'+id).then((a:any)=>{const u=JSON.parse(localStorage.getItem('minify_user')||'null');if(!u||u.id!==a.seller?.id){location.href='/dashboard';return}setF({...a,categoryId:a.category?.id||a.categoryId})}).catch(()=>location.href='/dashboard');api('/categories').then(setCats).catch(()=>{})},[id]);
  const set=(k:string,v:any)=>setF((x:any)=>({...x,[k]:v}));
- const setCategory=(categoryId:string)=>{const category=cats.flatMap((c:any)=>[c,...(c.children||[])]).find((c:any)=>c.id===categoryId);setF((x:any)=>({...x,categoryId,category,attributes:{}}));setMsg('Category changed. Please review the category-specific details before saving.');};
+ const flatten=(items:any[],out:any[]=[]):any[]=>{for(const c of items){out.push(c);if(c.children?.length)flatten(c.children,out)}return out;};
+ const setCategory=(categoryId:string)=>{const category=flatten(cats).find((c:any)=>c.id===categoryId);setF((x:any)=>({...x,categoryId,category,attributes:{}}));setMsg('Category changed. Please review the category-specific details before saving.');};
  async function uploadImages(files:File[]){
   if(!files.length)return [];
   const token=localStorage.getItem('minify_token')||'';const form=new FormData();files.slice(0,8).forEach(file=>form.append('images',file));
@@ -20,9 +21,9 @@ export default function EditAdvert(){
   if(!r.ok)throw new Error(await r.text());return (await r.json()).images||[];
  }
  async function removeImage(imageId:string){if(!confirm('Remove this photo?'))return;try{setBusy(true);await api('/ads/images/'+imageId,{method:'DELETE'});const fresh=await api('/ads/manage/'+id);setF({...fresh,categoryId:fresh.category?.id||fresh.categoryId});setMsg('Photo removed.')}catch(err:any){setMsg(err.message||'Could not remove photo.')}finally{setBusy(false)}}
- async function save(e:FormEvent){e.preventDefault();setBusy(true);setMsg('');try{await api('/ads/'+id,{method:'PATCH',body:JSON.stringify({title:f.title,categoryId:f.categoryId,price:Number(f.price),condition:f.condition,city:f.city,location:f.location,description:f.description,negotiable:Boolean(f.negotiable),attributes:f.attributes||{}})});setMsg('Advert updated successfully.')}catch(e:any){setMsg(e.message||'Could not update advert.')}finally{setBusy(false)}}
+ async function save(e:FormEvent){e.preventDefault();setMsg('');const fields=FIELD_RULES[f?.category?.name||'']||[];const missing=fields.filter((field:any)=>field.required&&!String(f.attributes?.[field.key]??'').trim());if(missing.length){setMsg(`Please complete: ${missing.map((x:any)=>x.label).join(', ')}.`);return}setBusy(true);try{await api('/ads/'+id,{method:'PATCH',body:JSON.stringify({title:f.title,categoryId:f.categoryId,price:Number(f.price),condition:f.condition,city:f.city,location:f.location,description:f.description,negotiable:Boolean(f.negotiable),attributes:f.attributes||{}})});setMsg('Advert updated successfully.')}catch(e:any){setMsg(e.message||'Could not update advert.')}finally{setBusy(false)}}
  if(!f)return <><Header/><main className="container section"><div className="empty">Loading advert…</div></main></>;
- const flat=cats.flatMap(c=>[c,...(c.children||[])]);
+ const flat=flatten(cats);
  const ruleFields=FIELD_RULES[f.category?.name||'']||[];
  const options=(x:any)=>x.key==='model'&&f.category?.name==='Mobile Phones'?PHONE_MODELS[f.attributes?.brand]||['Other']:x.key==='model'&&f.category?.name==='Cars'?VEHICLE_MODELS[f.attributes?.make]||['Other']:x.options||[];
  const setAttr=(key:string,value:string)=>setF((x:any)=>({...x,attributes:{...(x.attributes||{}),[key]:value}}));
