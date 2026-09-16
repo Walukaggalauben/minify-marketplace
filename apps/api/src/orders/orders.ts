@@ -1,4 +1,4 @@
-import {Body,Controller,Get,Param,Patch,Post,Request,UseGuards,ForbiddenException,NotFoundException} from '@nestjs/common';
+﻿import {Body,Controller,Get,Param,Patch,Post,Request,UseGuards,ForbiddenException,NotFoundException} from '@nestjs/common';
 import {PrismaService} from '../prisma.service';
 import {JwtAuthGuard} from '../auth/auth.guard';
 
@@ -20,7 +20,7 @@ export class OrdersController {
   const payment=['CASH','MOBILE_MONEY'].includes(String(body.paymentMethod))?String(body.paymentMethod):'CASH';
   if(method==='DELIVERY'&&!String(body.deliveryAddress??'').trim())throw new ForbiddenException('Delivery address is required for delivery orders.');
   const order=await this.db.order.create({data:{adId:ad.id,buyerId:req.user.sub,sellerId:ad.sellerId,quantity,total:Number(ad.price)*quantity,deliveryMethod:method,paymentMethod:payment,deliveryAddress:method=== 'DELIVERY' && String(body.deliveryAddress??'').trim()?String(body.deliveryAddress).trim():null,buyerNote:String(body.buyerNote??'').trim()?String(body.buyerNote).trim():null},include:{ad:{include:{images:true}},seller:{select:{id:true,name:true,phone:true}}}});
-  await this.db.notification.create({data:{userId:ad.sellerId,type:'ORDER_CREATED',title:'New purchase request',body:`A buyer requested ${quantity} × ${order.ad.title}.`,link:'/orders'}});
+  await this.db.notification.create({data:{userId:ad.sellerId,type:'ORDER_CREATED',title:'New purchase request',body:`A buyer requested ${quantity} Ã— ${order.ad.title}.`,link:'/orders'}});
   return order;
  }
  @Get('mine')
@@ -70,3 +70,4 @@ export class OrdersController {
   return this.db.order.update({where:{id},data:{paymentStatus:'PENDING'},select:{id:true,paymentStatus:true,paymentMethod:true,total:true,status:true}});
  }
 }
+
