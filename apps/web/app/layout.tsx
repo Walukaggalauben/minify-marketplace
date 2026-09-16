@@ -1,4 +1,6 @@
 import './globals.css';
+import './ui-refresh.css';
+import './ui-refresh.css';
 import type {Metadata, Viewport} from 'next';
 
 export const metadata: Metadata = {
