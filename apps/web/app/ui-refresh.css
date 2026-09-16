@@ -55,3 +55,23 @@ button,a,input,select,textarea{touch-action:manipulation}
   .nav-link span{display:none}
   .search-btn{padding-left:13px;padding-right:13px}
 }
+
+/* Premium header composition — keeps brand, search and actions in dedicated lanes */
+.nav-main{min-height:78px;display:grid;grid-template-columns:205px minmax(300px,1fr) auto;align-items:center;gap:22px;width:100%}
+.nav-main .brand{min-width:0;display:flex;align-items:center;gap:8px;text-decoration:none}
+.nav-main .brand-logo-wrap{width:181px;height:65px;flex:none}
+.nav-main .brand-logo{width:181px;height:65px}
+.nav-main .search{width:100%;max-width:none;min-width:0;height:50px;margin:0;box-sizing:border-box}
+.nav-main .search input{min-width:80px}
+.nav-primary-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;white-space:nowrap}
+.nav-primary-actions .primary-account{padding:10px 12px;border:1px solid transparent}
+.nav-primary-actions .primary-account:hover{border-color:#d8e8e1;background:#f4faf7}
+.nav-secondary{border-top:1px solid #edf2ef;background:rgba(250,252,251,.96)}
+.nav-secondary-inner{min-height:48px;display:flex;align-items:center;gap:20px}
+.nav-secondary .browse-link{font-weight:850;color:#087f5b;padding-left:0}
+.nav-secondary .nav-actions{margin-left:auto;display:flex;align-items:center;gap:5px;min-width:0}
+.nav-secondary .nav-link{position:relative;padding:7px 10px}
+.unread-badge{position:absolute;top:1px;right:2px;min-width:16px;height:16px;padding:0 4px;border-radius:99px;background:#087f5b;color:#fff;font-size:9px;font-style:normal;display:grid;place-items:center;border:2px solid #fff}
+@media(max-width:1100px){.nav-main{grid-template-columns:170px minmax(260px,1fr) auto;gap:14px}.nav-main .brand-logo-wrap,.nav-main .brand-logo{width:150px;height:54px}.nav-secondary-inner{gap:10px}.nav-secondary .nav-actions{gap:0}}
+@media(max-width:800px){.nav-main{grid-template-columns:1fr auto;gap:10px;min-height:66px;padding-top:6px;padding-bottom:6px}.nav-main .search{grid-column:1/-1;grid-row:2;height:48px}.nav-primary-actions{gap:4px}.nav-primary-actions .primary-account{padding:8px}.nav-secondary-inner{min-height:44px;overflow:hidden}.nav-secondary .browse-link{display:none}.nav-secondary .nav-actions{width:100%;overflow-x:auto;justify-content:flex-start}.nav-secondary .nav-link{flex:none}.nav-main .market-label{display:none}}
+@media(max-width:480px){.nav-main{grid-template-columns:minmax(0,1fr) auto;padding-left:12px;padding-right:12px}.nav-main .brand-logo-wrap,.nav-main .brand-logo{width:132px;height:auto}.nav-primary-actions .primary-account span{display:none}.nav-primary-actions .primary-account{padding:8px}.nav-main .search{height:46px}.nav-main .search-btn{height:46px;padding-left:14px;padding-right:14px}.nav-secondary .nav-link{padding-left:8px;padding-right:8px}}
