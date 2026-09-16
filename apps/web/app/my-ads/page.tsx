@@ -19,7 +19,7 @@ export default function MyAds(){
   {msg&&<div className="notice">{msg}</div>}
   {loading?<div className="surface surface-pad empty">Loading your adverts…</div>:visible.length===0?<div className="surface surface-pad empty"><Archive size={36}/><h3>No adverts in this view</h3><p className="muted">Your marketplace listings will appear here.</p><Link href="/sell" className="btn primary">Create an advert</Link></div>:<div className="managed-ad-list">
    {visible.map(a=><article className="managed-ad" key={a.id}>
-    <Link href={'/ad/'+a.id} className="managed-ad-main"><div className="managed-ad-image"><img src={mediaUrl(a.images?.[0]?.url||'/logo-market.png')} alt={a.title}/><span>{a.images?.length||0} photos</span></div>
+    <Link href={'/ad/'+a.id} className="managed-ad-main"><div className="managed-ad-image"><img src={mediaUrl(a.images?.[0]?.url||'/minify-market-official.png')} alt={a.title}/><span>{a.images?.length||0} photos</span></div>
     <div className="managed-ad-copy"><div className="managed-ad-top"><strong>{money(a.price)}</strong><span className={'status status-'+String(a.status).toLowerCase()}>{String(a.status).replace('_',' ')}</span></div><h2>{a.title}</h2><p>{a.city}{a.location?' · '+a.location:''}</p>
     <div className="managed-ad-stats"><span><Eye size={15}/> {a.views||0} views</span><span><Heart size={15}/> {a._count?.favorites||0} saved</span><span><MessageCircle size={15}/> {a._count?.conversations||0} chats</span><span><Clock size={15}/> {new Date(a.createdAt).toLocaleDateString()}</span></div>
     {a.status==='REJECTED'&&<div className="moderation-note"><b>Needs attention:</b> {a.moderationNote||'Review the advert details and submit again.'}</div>}</div></Link>

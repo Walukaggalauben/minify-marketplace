@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 import {useState} from 'react';
 import {api,money} from '../lib';
 
@@ -11,7 +11,7 @@ export default function OrderPanel({ad}:{ad:any}){
   if(delivery==='DELIVERY'&&!address.trim()){setMsg('Please enter a delivery address.');return}
   setBusy(true);setMsg('');
   try{const o=await api('/orders',{method:'POST',body:JSON.stringify({adId:ad.id,quantity:qty,deliveryMethod:delivery,paymentMethod:payment,deliveryAddress:delivery==='DELIVERY'?address.trim():null,buyerNote:note.trim()||null})});
-   setMsg(`Purchase request created. Order ${String(o.id).slice(0,8)}â€¦`);setTimeout(()=>{location.href='/orders'},700);
+   setMsg(`Purchase request created. Order ${String(o.id).slice(0,8)}...`);setTimeout(()=>{location.href='/orders'},700);
   }catch(e:any){setMsg(e?.message||'Could not create order.')}finally{setBusy(false)}
  }
  return <div className="order-panel"><div><span className="eyebrow">BUY SAFELY</span><h2>Request this item</h2><p className="muted">Send the seller a structured purchase request.</p></div>
@@ -21,7 +21,7 @@ export default function OrderPanel({ad}:{ad:any}){
   {delivery==='DELIVERY'&&<label>Delivery address<input value={address} onChange={e=>setAddress(e.target.value)} placeholder="Area, street or landmark"/></label>}
   <label>Message to seller <textarea value={note} onChange={e=>setNote(e.target.value)} placeholder="Optional note" rows={2}/></label>
   <div className="order-total"><span>Estimated total</span><b>{money(total)}</b></div>
-  <button className="btn primary" onClick={order} disabled={busy}>{busy?'Sendingâ€¦':'Request to buy'}</button>{msg&&<div className="notice">{msg}</div>}
+  <button className="btn primary" onClick={order} disabled={busy}>{busy?'Sending...':'Request to buy'}</button>{msg&&<div className="notice">{msg}</div>}
   <small className="muted">Mobile Money payments are securely handled through Flutterwave. You will be redirected to complete checkout; never share your PIN.</small>
  </div>
 }
