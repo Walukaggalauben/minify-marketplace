@@ -2,21 +2,65 @@
   "expo": {
     "name": "MINIFY MARKET",
     "slug": "minify-market",
+    "owner": "hassanprogrammer256",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/minify-market.png",
     "scheme": "minifymarket",
     "userInterfaceStyle": "light",
-    "ios": { "bundleIdentifier": "com.minify.market", "supportsTablet": true },
-    "android": { "package": "com.minify.market", "adaptiveIcon": { "backgroundColor": "#0B8F55", "foregroundImage": "./assets/images/minify-market.png", "monochromeImage": "./assets/images/minify-market.png" }, "predictiveBackGestureEnabled": true },
-    "web": { "output": "static", "favicon": "./assets/images/minify-market.png" },
+    "ios": {
+      "bundleIdentifier": "com.minify.market",
+      "supportsTablet": true
+    },
+    "android": {
+      "package": "com.minify.market",
+      "adaptiveIcon": {
+        "backgroundColor": "#0B8F55",
+        "foregroundImage": "./assets/images/minify-market.png",
+        "monochromeImage": "./assets/images/minify-market.png"
+      },
+      "predictiveBackGestureEnabled": true
+    },
+    "web": {
+      "output": "static",
+      "favicon": "./assets/images/minify-market.png"
+    },
     "plugins": [
       "expo-router",
-      ["expo-splash-screen", { "backgroundColor": "#0B8F55", "image": "./assets/images/minify-market.png", "imageWidth": 180 }],
-      ["expo-secure-store", { "configureAndroidBackup": true, "faceIDPermission": "Allow MINIFY MARKET to securely access your account." }],
-      ["expo-image-picker", { "photosPermission": "MINIFY MARKET needs photo access so you can add advert images.", "cameraPermission": "MINIFY MARKET needs camera access so you can photograph items for sale.", "microphonePermission": false }],
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#0B8F55",
+          "image": "./assets/images/minify-market.png",
+          "imageWidth": 180
+        }
+      ],
+      [
+        "expo-secure-store",
+        {
+          "configureAndroidBackup": true,
+          "faceIDPermission": "Allow MINIFY MARKET to securely access your account."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "MINIFY MARKET needs photo access so you can add advert images.",
+          "cameraPermission": "MINIFY MARKET needs camera access so you can photograph items for sale.",
+          "microphonePermission": false
+        }
+      ],
       "expo-notifications"
     ],
-    "experiments": { "typedRoutes": true, "reactCompiler": true }
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "624efe85-03fa-4ec6-9eee-ced0cf120e8e"
+      }
+    }
   }
 }

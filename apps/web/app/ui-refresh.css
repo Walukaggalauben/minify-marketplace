@@ -157,3 +157,6 @@ button,a,input,select,textarea{touch-action:manipulation}
 @media(max-width:1100px){.nav-main .market-mark{width:150px;height:52px;flex-basis:150px}.nav-main .market-mark-image{width:150px;height:52px;max-width:150px}}
 @media(max-width:800px){.nav-main .market-mark{width:145px;height:48px;flex-basis:145px}.nav-main .market-mark-image{width:145px;height:48px;max-width:145px}}
 @media(max-width:480px){.nav-main .market-mark{width:132px;height:44px;flex-basis:132px}.nav-main .market-mark-image{width:132px;height:44px;max-width:132px}}
+
+/* Simple sign-in gate for Sell */
+.sell-auth-gate{max-width:520px;margin:35px auto;padding:30px;text-align:center}.sell-auth-gate h1{margin:8px 0}.sell-auth-gate p{line-height:1.6}.sell-auth-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:22px}.sell-auth-actions .btn{display:flex;align-items:center;justify-content:center;text-decoration:none}.sell-auth-back{display:inline-block;margin-top:18px;color:#168a57;font-weight:800;text-decoration:none}@media(max-width:520px){.sell-auth-gate{margin:18px auto;padding:22px}.sell-auth-actions{grid-template-columns:1fr}}
