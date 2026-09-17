@@ -16,7 +16,7 @@ function AdCard({ ad }: { ad: Ad }) {
       <View style={styles.cardBody}>
         <Text numberOfLines={2} style={styles.cardTitle}>{ad.title}</Text>
         <Text style={styles.price}>{money(ad.price)}</Text>
-        <Text numberOfLines={1} style={styles.meta}>{ad.city || 'Uganda'} � {ad.category?.name || 'Marketplace'}</Text>
+        <Text numberOfLines={1} style={styles.meta}>{ad.city || 'Uganda'} • {ad.category?.name || 'Marketplace'}</Text>
       </View>
     </Pressable>
   );

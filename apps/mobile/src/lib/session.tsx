@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import { Platform } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
 import { router } from 'expo-router';
+import type { Href } from 'expo-router';
 import { api, type User } from './api';
 
 type SessionContextValue = { user: User | null; token: string | null; loading: boolean; login: (email: string, password: string, next?: string) => Promise<void>; register: (name: string, email: string, phone: string, password: string, next?: string) => Promise<void>; logout: () => Promise<void> };
@@ -11,7 +12,9 @@ const USER_KEY = 'minify_market_user';
 async function save(key:string,value:string){if(Platform.OS==='web')localStorage.setItem(key,value);else await SecureStore.setItemAsync(key,value)}
 async function read(key:string){if(Platform.OS==='web')return localStorage.getItem(key);return SecureStore.getItemAsync(key)}
 async function remove(key:string){if(Platform.OS==='web')localStorage.removeItem(key);else await SecureStore.deleteItemAsync(key)}
-function safeNext(next?:string){return next&&next.startsWith('/')&&!next.startsWith('//')?next:'/(tabs)'}
+function safeNext(next?: string): Href {
+  return (next && next.startsWith('/') && !next.startsWith('//') ? next : '/(tabs)') as Href;
+}
 export function SessionProvider({children}:{children:React.ReactNode}){
  const[user,setUser]=useState<User|null>(null),[token,setToken]=useState<string|null>(null),[loading,setLoading]=useState(true);
  useEffect(()=>{(async()=>{try{const[t,u]=await Promise.all([read(TOKEN_KEY),read(USER_KEY)]);if(t){setToken(t);globalThis.__MINIFY_TOKEN__=t}if(u)setUser(JSON.parse(u))}finally{setLoading(false)}})()},[]);
