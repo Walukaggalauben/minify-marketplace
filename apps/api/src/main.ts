@@ -25,8 +25,6 @@ async function bootstrap(){
  app.useGlobalPipes(new ValidationPipe({whitelist:true,transform:true,forbidNonWhitelisted:true}));
  app.setGlobalPrefix('api', { exclude: [{ path: 'health', method: RequestMethod.GET }] });
  app.useStaticAssets(join(process.cwd(),'uploads'),{prefix:'/uploads/'});
- await app.listen(process.env.API_PORT||4000);
+ await app.listen(process.env.API_PORT||4000,'127.0.0.1');
 }
 bootstrap();
-
-
