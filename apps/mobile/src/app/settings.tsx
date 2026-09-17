@@ -17,7 +17,7 @@ export default function Settings(){
  const rows:Row[]=[
   {label:'Personal info',icon:'person-outline',color:GREEN,action:()=>router.push('/account')},
   {label:'Business info',icon:'briefcase-outline',color:ORANGE,action:()=>router.push('/pro-sales')},
-  {label:'"Verified ID" badge',icon:'person-circle-outline',color:BLUE,value:'What is it?',action:()=>router.push('/verification')},
+  {label:'"Verified ID" badge',icon:'person-circle-outline',color:BLUE,value:'What is it?',action:()=>router.push('/info?section=verification')},
   {label:'Change language',icon:'globe-outline',color:ORANGE,value:'English',action:()=>Alert.alert('Language','English is currently selected.')},
   {label:'Change phone number',icon:'call-outline',color:GREEN,value:user?.phone||'',action:()=>Alert.alert('Change phone number','Phone number changes can be handled from your account support flow.')},
   {label:'Change e-mail',icon:'at-outline',color:ORANGE,value:user?.email||'',action:()=>Alert.alert('Change e-mail','Your login e-mail is currently managed by your account.')},
