@@ -2,7 +2,7 @@
   "expo": {
     "name": "MINIFY MARKET",
     "slug": "minify-market",
-    "owner": "hassanprogrammer256",
+    "owner": "walukaggalauben",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/minify-market.png",
@@ -59,7 +59,7 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "624efe85-03fa-4ec6-9eee-ced0cf120e8e"
+        "projectId": "3bfddfe2-ea78-4661-ac50-160638ee1840"
       }
     }
   }
