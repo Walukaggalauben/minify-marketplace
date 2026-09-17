@@ -25,7 +25,7 @@ const items: Item[] = [
 
 export default function AccountScreen() {
   const { user, loading } = useSession();
-  if (loading) return <View style={styles.loading}><Text style={styles.muted}>Loading profileâ€¦</Text></View>;
+  if (loading) return <View style={styles.loading}><Text style={styles.muted}>Loading profile...</Text></View>;
   if (!user) return <GuestAccount />;
 
   return (
@@ -71,7 +71,7 @@ function GuestAccount() {
 }
 
 const styles = StyleSheet.create({
-  screen:{flex:1,backgroundColor:'#EAF3F8'}, loading:{flex:1,alignItems:'center',justifyContent:'center',backgroundColor:'#FFF'},
+  screen:{flex:1,backgroundColor:'#F6F8F7'}, loading:{flex:1,alignItems:'center',justifyContent:'center',backgroundColor:'#FFF'},
   header:{height:88,backgroundColor:'#FFF',paddingHorizontal:16,flexDirection:'row',alignItems:'center',justifyContent:'space-between',borderBottomWidth:1,borderBottomColor:'#D6E0E6'},
   brand:{flexDirection:'row',alignItems:'center'},logo:{width:62,height:54,resizeMode:'contain'},brandName:{fontSize:19,fontWeight:'800',color:TEXT,marginLeft:6},settingsButton:{width:44,height:44,alignItems:'center',justifyContent:'center'},
   content:{padding:16,paddingBottom:110},profile:{backgroundColor:'#FFF',borderRadius:4,padding:15,flexDirection:'row',alignItems:'center',borderBottomWidth:1,borderBottomColor:'#D6E0E6'},avatar:{width:60,height:60,borderRadius:30,backgroundColor:'#E8F7EF',alignItems:'center',justifyContent:'center',marginRight:12},profileCopy:{flex:1},name:{fontSize:19,fontWeight:'800',color:TEXT},muted:{fontSize:14,color:MUTED,marginTop:3},viewProfile:{fontSize:13,color:GREEN,fontWeight:'800',marginTop:5},sectionTitle:{fontSize:19,fontWeight:'900',color:TEXT,marginTop:18,marginBottom:9},
