@@ -43,7 +43,7 @@ function fieldsFor(category?:Category,rootName?:string){if(!category)return [];r
 export default function Sell(){
  const [cats,setCats]=useState<Category[]>([]),[user,setUser]=useState<any>(null),[files,setFiles]=useState<File[]>([]);
  const [f,setF]=useState<any>({condition:'USED',region:'Central',city:'Kampala',negotiable:true,attributes:{}}),[rootId,setRootId]=useState(''),[categoryId,setCategoryId]=useState(''),[msg,setMsg]=useState(''),[busy,setBusy]=useState(false);
- useEffect(()=>{api('/categories').then((x:any)=>setCats(Array.isArray(x)?x:[])).catch(()=>{});const u=localStorage.getItem('minify_user');if(u)try{setUser(JSON.parse(u))}catch{}},[]);
+ useEffect(()=>{api('/categories').then((x:any)=>setCats(Array.isArray(x)?x:[])).catch(()=>{});const u=localStorage.getItem('minify_user');if(u)try{setUser(JSON.parse(u))}catch{}else{location.href='/login?next=/sell'}},[]);
  const root=cats.find(c=>c.id===rootId),children=root?.children||[];
  const selectedCategory=(()=>{const walk=(xs:Category[]):Category|undefined=>{for(const c of xs){if(c.id===categoryId)return c;const hit=walk(c.children||[]);if(hit)return hit}return undefined};return walk(cats)})();
  const selectedChildren=selectedCategory?.children||[],fields=useMemo(()=>fieldsFor(selectedCategory,root?.name),[selectedCategory,root?.name]);

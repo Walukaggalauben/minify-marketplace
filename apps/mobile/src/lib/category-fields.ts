@@ -1,4 +1,4 @@
-type Field={key:string;label:string;type:'text'|'number'|'select';options?:string[];required?:boolean;placeholder?:string};
+export type Field={key:string;label:string;type:'text'|'number'|'select';options?:string[];required?:boolean;placeholder?:string};
 const colors=['Black','White','Blue','Red','Green','Yellow','Gold','Silver','Gray','Purple','Pink','Orange','Brown','Beige','Other'];
 const conditions=['Brand New','Used','Refurbished'];
 const product=[{key:'brand',label:'Brand',type:'text' as const},{key:'model',label:'Model',type:'text' as const},{key:'conditionDetail',label:'Condition details',type:'text' as const,placeholder:'Describe condition'}];

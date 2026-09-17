@@ -1,7 +1,62 @@
-import { Alert, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useSession } from '@/lib/session';
-const GREEN='#0B8F55';
-export default function AccountScreen(){const {user,loading,logout}=useSession(); if(loading)return <View style={styles.center}><Text>Loading account…</Text></View>; return <ScrollView style={styles.screen} contentContainerStyle={styles.content}><Image source={require('../../../assets/images/minify-market.png')} style={styles.logo}/>{user?<><View style={styles.profile}><View style={styles.avatar}><Text style={styles.avatarText}>{user.name.slice(0,1).toUpperCase()}</Text></View><View style={{flex:1}}><Text style={styles.name}>{user.name}</Text><Text style={styles.muted}>{user.email}</Text><Text style={styles.muted}>{user.phone}</Text></View></View><Text style={styles.section}>Your marketplace</Text><Action title="My adverts" onPress={()=>router.push('/my-ads')}/><Action title="Favorites" onPress={()=>router.push('/favorites')}/><Action title="Orders" onPress={()=>router.push('/orders')}/><Action title="Messages" onPress={()=>router.push('/messages')}/><Action title="Notifications" onPress={()=>router.push('/notifications')}/><Action title="Seller dashboard" onPress={()=>router.push('/dashboard')}/><Pressable style={styles.logout} onPress={()=>Alert.alert('Log out','Do you want to log out?', [{text:'Cancel',style:'cancel'},{text:'Log out',style:'destructive',onPress:logout}])}><Text style={styles.logoutText}>Log out</Text></Pressable></>:<><Text style={styles.heading}>Welcome to MINIFY MARKET</Text><Text style={styles.mutedBig}>Sign in to buy, sell, save adverts and message sellers.</Text><Action title="Log in" onPress={()=>router.push('/login')}/><Action title="Create account" onPress={()=>router.push('/register')} primary/></>}</ScrollView>}
-function Action({title,onPress,primary=false}:{title:string;onPress:()=>void;primary?:boolean}){return <Pressable onPress={onPress} style={[styles.action,primary&&styles.primary]}><Text style={[styles.actionText,primary&&styles.primaryText]}>{title}</Text><Text style={[styles.arrow,primary&&styles.primaryText]}>›</Text></Pressable>}
-const styles=StyleSheet.create({screen:{flex:1,backgroundColor:'#F6F8F7'},content:{padding:18,paddingBottom:100},logo:{width:150,height:50,resizeMode:'contain',marginBottom:20},profile:{backgroundColor:'#FFF',padding:18,borderRadius:18,flexDirection:'row',alignItems:'center',gap:14,borderWidth:1,borderColor:'#E3EAE6'},avatar:{width:58,height:58,borderRadius:29,backgroundColor:'#E8F6EF',alignItems:'center',justifyContent:'center'},avatarText:{fontSize:24,fontWeight:'900',color:GREEN},name:{fontSize:20,fontWeight:'900',color:'#17202A'},muted:{color:'#73808A',marginTop:3},section:{fontSize:18,fontWeight:'900',color:'#17202A',marginVertical:18},heading:{fontSize:28,fontWeight:'900',color:'#17202A',marginTop:20},mutedBig:{fontSize:15,lineHeight:23,color:'#73808A',marginVertical:10},action:{height:56,backgroundColor:'#FFF',borderRadius:13,marginBottom:10,paddingHorizontal:16,flexDirection:'row',alignItems:'center',justifyContent:'space-between',borderWidth:1,borderColor:'#E2E8E5'},actionText:{fontSize:15,fontWeight:'800',color:'#17202A'},arrow:{fontSize:25,color:GREEN},primary:{backgroundColor:GREEN,borderColor:GREEN},primaryText:{color:'#FFF'},logout:{marginTop:12,height:54,alignItems:'center',justifyContent:'center'},logoutText:{color:'#C53030',fontWeight:'900'},center:{flex:1,alignItems:'center',justifyContent:'center'}});
+
+const GREEN = '#00A83B';
+const TEXT = '#34434D';
+const MUTED = '#6F91A2';
+
+type Item = { label: string; icon: any; path: string };
+const items: Item[] = [
+  { label: 'My ads', icon: 'list-outline', path: '/my-ads' },
+  { label: 'My clients', icon: 'people-outline', path: '/dashboard' },
+  { label: 'Feedback', icon: 'chatbubble-ellipses-outline', path: '/dashboard' },
+  { label: 'Performance', icon: 'bar-chart-outline', path: '/dashboard' },
+  { label: 'Pro Sales', icon: 'trending-up-outline', path: '/pro-sales' },
+  { label: 'Premium service', icon: 'diamond-outline', path: '/seller-plans' },
+  { label: 'My balance', icon: 'wallet-outline', path: '/balance' },
+  { label: 'Request help', icon: 'person-outline', path: '/help' },
+  { label: 'FAQ', icon: 'help-circle-outline', path: '/help' },
+  { label: 'Notifications', icon: 'notifications-outline', path: '/notifications' },
+  { label: 'Followers', icon: 'people-circle-outline', path: '/dashboard' },
+  { label: 'Orders', icon: 'bag-handle-outline', path: '/orders' },
+];
+
+export default function AccountScreen() {
+  const { user, loading } = useSession();
+  if (loading) return <View style={styles.loading}><Text style={styles.muted}>Loading profileâ€¦</Text></View>;
+  if (!user) return <GuestAccount />;
+
+  return (
+    <View style={styles.screen}>
+      <View style={styles.header}>
+        <View style={styles.brand}>
+          <Image source={require('../../../assets/images/minify-market.png')} style={styles.logo} />
+          <Text style={styles.brandName}>MINIFY MARKET</Text>
+        </View>
+        <Pressable onPress={() => router.push('/settings')} accessibilityLabel="Settings" style={styles.settingsButton}>
+          <Ionicons name="settings-outline" size={30} color={TEXT} />
+        </Pressable>
+      </View>
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <Pressable style={styles.profile} onPress={() => router.push('/settings')}>
+          <View style={styles.avatar}><Ionicons name="person" size={34} color={GREEN} /></View>
+          <View style={styles.profileCopy}>
+            <Text style={styles.name} numberOfLines={1}>{user.name}</Text>
+            <Text style={styles.muted} numberOfLines={1}>{user.email}</Text>
+            <Text style={styles.viewProfile}>View profile & settings</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={25} color={MUTED} />
+        </Pressable>
+        <Text style={styles.sectionTitle}>Account</Text>
+        <View style={styles.grid}>{items.map(item => (
+          <Pressable key={item.label} style={styles.card} onPress={() => router.push(item.path as any)}>
+            <Ionicons name={item.icon} size={29} color={TEXT} />
+            <Text style={styles.cardText}>{item.label}</Text>
+          </Pressable>
+        ))}</View>
+      </ScrollView>
+    </View>
+  );
+}
