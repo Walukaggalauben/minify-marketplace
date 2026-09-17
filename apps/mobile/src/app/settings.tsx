@@ -3,7 +3,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useSession } from '@/lib/session';
 
-const GREEN='#00A83B';
+const GREEN='#0B8F55';
 const ORANGE='#FFA43A';
 const BLUE='#12A9E0';
 const RED='#FF2635';
@@ -16,7 +16,7 @@ export default function Settings(){
  const {user,logout}=useSession();
  const rows:Row[]=[
   {label:'Personal info',icon:'person-outline',color:GREEN,action:()=>router.push('/account')},
-  {label:'Business info',icon:'briefcase-outline',color:ORANGE,action:()=>router.push('/pro-sales')},
+  {label:'Business info',icon:'briefcase-outline',color:ORANGE,action:()=>router.push('/dashboard')},
   {label:'"Verified ID" badge',icon:'person-circle-outline',color:BLUE,value:'What is it?',action:()=>router.push('/info?section=verification')},
   {label:'Change language',icon:'globe-outline',color:ORANGE,value:'English',action:()=>Alert.alert('Language','English is currently selected.')},
   {label:'Change phone number',icon:'call-outline',color:GREEN,value:user?.phone||'',action:()=>Alert.alert('Change phone number','Phone number changes can be handled from your account support flow.')},

@@ -3,7 +3,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useSession } from '@/lib/session';
 
-const GREEN = '#00A83B';
+const GREEN = '#0B8F55';
 const TEXT = '#34434D';
 const MUTED = '#6F91A2';
 
@@ -25,7 +25,7 @@ const items: Item[] = [
 
 export default function AccountScreen() {
   const { user, loading } = useSession();
-  if (loading) return <View style={styles.loading}><Text style={styles.muted}>Loading profile…</Text></View>;
+  if (loading) return <View style={styles.loading}><Text style={styles.muted}>Loading profileâ€¦</Text></View>;
   if (!user) return <GuestAccount />;
 
   return (

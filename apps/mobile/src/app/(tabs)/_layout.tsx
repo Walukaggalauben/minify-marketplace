@@ -1,7 +1,7 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
-const GREEN = '#00A83B';
+const GREEN = '#0B8F55';
 const INACTIVE = '#425563';
 
 export default function TabLayout() {
