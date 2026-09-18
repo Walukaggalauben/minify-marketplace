@@ -22,6 +22,7 @@ import { SavedSearchesController } from './saved-searches/saved-searches';
 import { SubscriptionsController } from './subscriptions/subscriptions';
 import { PromotionPaymentsController } from './promotion-payments/promotion-payments';
 import { HealthController } from './health.controller';
+import { AiController } from './ai/ai';
 
 const jwtSecret=process.env.JWT_SECRET||'dev-secret';
 if(process.env.NODE_ENV==='production'&&(!process.env.JWT_SECRET||process.env.JWT_SECRET==='change-this-in-production')){
@@ -30,7 +31,7 @@ if(process.env.NODE_ENV==='production'&&(!process.env.JWT_SECRET||process.env.JW
 
 @Module({
  imports:[JwtModule.register({secret:jwtSecret,signOptions:{expiresIn:'7d'}}),ThrottlerModule.forRoot([{name:'default',ttl:60000,limit:120}])],
- controllers:[HealthController,AuthController,AdsController,CategoriesController,FavoritesController,ChatsController,ReviewsController,ReportsController,AdminController,UploadsController,UsersController,OrdersController,PaymentsController,NotificationsController,SavedSearchesController,SubscriptionsController,PromotionPaymentsController],
+ controllers:[HealthController,AiController,AuthController,AdsController,CategoriesController,FavoritesController,ChatsController,ReviewsController,ReportsController,AdminController,UploadsController,UsersController,OrdersController,PaymentsController,NotificationsController,SavedSearchesController,SubscriptionsController,PromotionPaymentsController],
  providers:[PrismaService,AuthService,AdsService,JwtAuthGuard,ChatGateway,{provide:APP_GUARD,useClass:ThrottlerGuard}]
 })
 export class AppModule{}

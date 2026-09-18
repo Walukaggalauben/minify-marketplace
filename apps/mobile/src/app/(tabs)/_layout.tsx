@@ -17,7 +17,7 @@ export default function TabLayout() {
     }}>
       <Tabs.Screen name="index" options={{ title: t('home'), tabBarIcon: ({color,size}) => <Ionicons name="home-outline" size={size + 1} color={color} /> }} />
       <Tabs.Screen name="saved" options={{ title: t('saved'), tabBarIcon: ({color,size}) => <Ionicons name="bookmark-outline" size={size + 1} color={color} /> }} />
-      <Tabs.Screen name="sell" options={{ title: t('sell'), tabBarIcon: ({color,size}) => <Ionicons name="square-outline" size={size + 2} color={color} /> }} />
+      <Tabs.Screen name="sell" options={{ title: t('sell'), tabBarIcon: ({color,size}) => <Ionicons name="pricetag-outline" size={size + 2} color={color} /> }} />
       <Tabs.Screen name="messages" options={{ title: t('messages'), tabBarIcon: ({color,size}) => <Ionicons name="chatbox-ellipses-outline" size={size + 1} color={color} /> }} />
       <Tabs.Screen name="account" options={{ title: t('profile'), tabBarIcon: ({color,size}) => <Ionicons name="person-outline" size={size + 1} color={color} /> }} />
       <Tabs.Screen name="search" options={{ href: null }} />
