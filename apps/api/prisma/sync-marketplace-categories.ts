@@ -77,7 +77,7 @@ async function main(){
    for(const name of names) await ensure(name,p.id);
  }
  // Remove exact duplicate leaf entries, retaining the oldest record and its descendants.
- const groups=await db.category.findMany({orderBy:{createdAt:"asc"}});
+ const groups=await db.category.findMany({orderBy:{id:"asc"}});
  const seen=new Set<string>();
  for(const c of groups){
    const key=`${c.parentId||"root"}::${c.name.toLowerCase()}`;
