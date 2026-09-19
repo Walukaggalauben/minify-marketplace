@@ -38,7 +38,7 @@ export const FIELD_RULES:Record<string,Field[]>= {
  'Pet Supplies':[{key:'type',label:'Product type',type:'select',options:['Food','Cages & Kennels','Aquariums','Grooming','Toys','Accessories','Vitamins','Other'],required:true},{key:'brand',label:'Brand',type:'text'},{key:'condition',label:'Item condition',type:'select',options:['Brand New','Used','Refurbished'],required:true}],
 };
 
-function fieldsFor(category?:Category,rootName?:string){if(!category)return [];return FIELD_RULES[category.name]||fallbackFields(category.name,rootName||'');}
+function fieldsFor(category?:Category,rootName?:string){if(!category)return [];return ['Mobile Phones','Cars'].includes(category.name)&&FIELD_RULES[category.name]?FIELD_RULES[category.name]:fallbackFields(category.name,rootName||'');}
 
 export default function Sell(){
  const [cats,setCats]=useState<Category[]>([]),[user,setUser]=useState<any>(null),[files,setFiles]=useState<File[]>([]);
