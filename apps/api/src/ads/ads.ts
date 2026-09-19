@@ -30,7 +30,7 @@ export class AdsController {
   if(q.sellerId)where.AND.push({sellerId:String(q.sellerId)});
   if(q.condition)where.AND.push({condition:String(q.condition)});
   if(q.city)where.AND.push({city:{contains:String(q.city),mode:"insensitive"}});
-  if(q.attributeKey&&q.attributeValue)where.AND.push({attributes:{path:[String(q.attributeKey)],equals:String(q.attributeValue)}});
+  if(q.attributeKey&&q.attributeValue)where.AND.push({attributes:{path:[String(q.attributeKey)],equals:String(q.attributeValue)}});\n  for(const [key,value] of Object.entries(q)){if(key.startsWith('attr_')&&String(value).trim()){const attrKey=key.slice(5);where.AND.push({attributes:{path:[attrKey],equals:String(value)}});}}
   const min=Number(q.minPrice),max=Number(q.maxPrice);
   if(q.minPrice||q.maxPrice)where.price={...(Number.isFinite(min)?{gte:min}:{}),...(Number.isFinite(max)?{lte:max}:{})};
   const allowed=["createdAt","price","views","title"];const sort=allowed.includes(String(q.sort))?String(q.sort):"createdAt";
