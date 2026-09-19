@@ -81,7 +81,7 @@ async function main(){
  const seen=new Set<string>();
  for(const c of groups){
    const key=`${c.parentId||"root"}::${c.name.toLowerCase()}`;
-   if(seen.has(key)) await db.category.delete({where:{id:c.id}});
+   if(seen.has(key)){const [adCount,childCount,savedCount]=await Promise.all([db.ad.count({where:{categoryId:c.id}}),db.category.count({where:{parentId:c.id}}),db.savedSearch.count({where:{categoryId:c.id}})]);if(adCount===0&&childCount===0&&savedCount===0) await db.category.delete({where:{id:c.id}});}
    else seen.add(key);
  }
  console.log("Deep marketplace category catalog synced");
