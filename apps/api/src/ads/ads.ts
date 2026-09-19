@@ -1,6 +1,7 @@
 import {Body,Controller,Delete,Get,Param,Patch,Post,Query,Request,UseGuards,ForbiddenException,NotFoundException} from "@nestjs/common";
 import {PrismaService} from "../prisma.service";
 import {JwtAuthGuard} from "../auth/auth.guard";
+import {Prisma} from "@prisma/client";
 
 @Controller("ads")
 export class AdsController {
@@ -31,7 +32,23 @@ export class AdsController {
   if(q.condition)where.AND.push({condition:String(q.condition)});
   if(q.city)where.AND.push({city:{contains:String(q.city),mode:"insensitive"}});
   if(q.attributeKey&&q.attributeValue)where.AND.push({attributes:{path:[String(q.attributeKey)],equals:String(q.attributeValue)}});
-  for(const [key,value] of Object.entries(q)){if(key.startsWith('attr_')&&String(value).trim()){const attrKey=key.slice(5);where.AND.push({attributes:{path:[attrKey],equals:String(value)}});}}
+  for(const [key,value] of Object.entries(q)){if(key.startsWith('attr_')&&String(value).trim()&&!key.startsWith('attrMin_')&&!key.startsWith('attrMax_')){const attrKey=key.slice(5);where.AND.push({attributes:{path:[attrKey],equals:String(value)}});}}
+  const numericRanges=new Map<string,{min?:number;max?:number}>();
+  for(const [key,value] of Object.entries(q)){
+   if(!String(value).trim())continue;
+   const match=key.match(/^attr(Min|Max)_(.+)$/);if(!match)continue;
+   const n=Number(value);if(!Number.isFinite(n))continue;
+   const entry=numericRanges.get(match[2])||{};entry[match[1]==='Min'?'min':'max']=n;numericRanges.set(match[2],entry);
+  }
+  for(const [attrKey,range] of numericRanges){
+   const ids=await this.db.$queryRaw<Array<{id:string}>>(Prisma.sql`
+    SELECT id FROM "Ad"
+    WHERE (attributes ->> ${attrKey}) ~ '^[-+]?[0-9]+([.][0-9]+)?$'
+    AND (${range.min===undefined?Prisma.sql`TRUE`:Prisma.sql`CASE WHEN (attributes ->> ${attrKey}) ~ '^[-+]?[0-9]+([.][0-9]+)?$' THEN (attributes ->> ${attrKey})::numeric >= ${range.min} ELSE FALSE END`})
+    AND (${range.max===undefined?Prisma.sql`TRUE`:Prisma.sql`CASE WHEN (attributes ->> ${attrKey}) ~ '^[-+]?[0-9]+([.][0-9]+)?$' THEN (attributes ->> ${attrKey})::numeric <= ${range.max} ELSE FALSE END`})
+   `);
+   where.AND.push({id:{in:ids.map(x=>x.id)}});
+  }
   const min=Number(q.minPrice),max=Number(q.maxPrice);
   if(q.minPrice||q.maxPrice)where.price={...(Number.isFinite(min)?{gte:min}:{}),...(Number.isFinite(max)?{lte:max}:{})};
   const allowed=["createdAt","price","views","title"];const sort=allowed.includes(String(q.sort))?String(q.sort):"createdAt";
