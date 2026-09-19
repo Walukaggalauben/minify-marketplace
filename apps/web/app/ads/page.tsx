@@ -2,7 +2,8 @@
 import {useEffect,useState} from 'react';
 import Link from 'next/link';
 import Header from '../components/Header';
-import {api,money,mediaUrl} from '../lib';\nimport {fallbackFields,type Field} from '../sell/category-fields';
+import {api,money,mediaUrl} from '../lib';
+import {fallbackFields,type Field} from '../sell/category-fields';
 import {ArrowRight,Heart,SlidersHorizontal,Search,MapPin,ShieldCheck,Grid3X3,List,ArrowUpDown} from 'lucide-react';
 
 type Ad=any;
@@ -22,7 +23,9 @@ export default function AdsPage(){
  const cats=['All categories',...allCategories.map(c=>c.name)];
  const findCategory=(xs:any[],name:string):any=>{for(const c of xs){if(c.name===name)return c;const hit=findCategory(c.children||[],name);if(hit)return hit}return null};
  const selectedCategory=category!=='All categories'?findCategory(categories,category):null;
- const rootNameFor=(target:any)=>{const walk=(nodes:any[],root:string):string=>{for(const n of nodes){const nextRoot=root||n.name;if(n.id===target?.id)return nextRoot;const hit=walk(n.children||[],nextRoot);if(hit)return hit}return ''};return walk(categories,'')};\n const categoryFields:Field[]=selectedCategory&&!selectedCategory.children?.length?fallbackFields(selectedCategory.name,rootNameFor(selectedCategory)):[];\n const af=categoryFields;
+ const rootNameFor=(target:any)=>{const walk=(nodes:any[],root:string):string=>{for(const n of nodes){const nextRoot=root||n.name;if(n.id===target?.id)return nextRoot;const hit=walk(n.children||[],nextRoot);if(hit)return hit}return ''};return walk(categories,'')};
+ const categoryFields:Field[]=selectedCategory&&!selectedCategory.children?.length?fallbackFields(selectedCategory.name,rootNameFor(selectedCategory)):[];
+ const af=categoryFields;
  useEffect(()=>{const p=new URLSearchParams(location.search);setQ(p.get('q')||'');setCategory(p.get('category')||'All categories');api('/categories').then((x:any[])=>setCategories(Array.isArray(x)?x:[])).catch(()=>{});},[]);
  useEffect(()=>{load();},[q,category,city,condition,min,max,sort,page]);
  async function load(){setLoading(true);setError('');try{const p=new URLSearchParams({limit:String(limit),page:String(page),sort,order:sort==='price'?'asc':'desc'});if(q)p.set('q',q);if(category!=='All categories')p.set('category',category);
