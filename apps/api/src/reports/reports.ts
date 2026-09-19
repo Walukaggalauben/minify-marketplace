@@ -28,7 +28,7 @@ export class ReportsController {
         details,
       },
     });
-    await this.db.notification.create({data:{userId:ad.sellerId,type:'REPORT_RECEIVED',title:'Advert reported',body:`A buyer reported your advert â€œ${ad.title}â€. Our team will review it.`,link:`/ad/${ad.id}`}});
+    await this.db.notification.create({data:{userId:ad.sellerId,type:'REPORT_RECEIVED',title:'Advert reported',body:`A buyer reported your advert "${ad.title}". Our team will review it.`,link:`/ad/${ad.id}`}});
     return report;
   }
 }

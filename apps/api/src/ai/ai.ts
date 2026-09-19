@@ -50,7 +50,8 @@ export class AiController {
         const input = [{ role: 'system', content: `You are MINIFY MARKET AI, a friendly Ugandan marketplace assistant. Be concise and practical. Help users search listings, compare prices, create adverts and buy safely. Never invent listing facts. Live listings:\n${context || 'No matching live listings.'}` }, ...history.slice(-10), { role: 'user', content: message }];
         const response = await fetch('https://api.openai.com/v1/responses', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` }, body: JSON.stringify({ model, input, max_output_tokens: 500 }) });
         if (response.ok) { const data: any = await response.json(); const text = data.output_text || data.output?.flatMap((o: any) => o.content || []).find((c: any) => c.type === 'output_text')?.text; if (text) return text; }
-      } catch {}
+        else { const error = await response.text().catch(() => ''); console.warn(`[AI] OpenAI request failed (${response.status})${error ? `: ${error.slice(0,300)}` : ''}`); }
+      } catch (error: any) { console.warn(`[AI] OpenAI request error: ${error?.message || 'unknown error'}`); }
     }
     return this.fallbackReply(message, items, price, city);
   }
