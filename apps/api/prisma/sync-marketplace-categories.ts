@@ -59,7 +59,7 @@ async function ensure(name:string,parentId:string){
  const matches=await db.category.findMany({where:{name}});
  const same=matches.find(x=>x.parentId===parentId);
  if(same)return same;
- const base=slug(name); const slugExists=await db.category.findUnique({where:{slug:base}}); const finalSlug=slugExists&&slugExists.parentId!==parentId?`${base}-${parentId.slice(-8)}`:base; return db.category.create({data:{name,slug:finalSlug,parentId}});
+ const base=slug(name); const slugExists=await db.category.findFirst({where:{slug:base}}); const finalSlug=slugExists&&slugExists.parentId!==parentId?`${base}-${parentId.slice(-8)}`:base; return db.category.create({data:{name,slug:finalSlug,parentId}});
 }
 async function main(){
  const roots=await db.category.findMany({where:{parentId:null}});
