@@ -5,8 +5,8 @@
     "owner": "walukaggalauben",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/minify-market.png",
-    "scheme": "minifymarket",
+    "icon": "./assets/images/minify-market-icon.png",
+  "scheme": "minifymarket",
     "userInterfaceStyle": "light",
     "ios": {
       "bundleIdentifier": "com.minify.market",
@@ -16,14 +16,14 @@
       "package": "com.minify.market",
       "adaptiveIcon": {
         "backgroundColor": "#0B8F55",
-        "foregroundImage": "./assets/images/minify-market.png",
-        "monochromeImage": "./assets/images/minify-market.png"
+        "foregroundImage": "./assets/images/minify-market-icon.png",
+        "monochromeImage": "./assets/images/minify-market-monochrome.png"
       },
       "predictiveBackGestureEnabled": true
     },
     "web": {
       "output": "static",
-      "favicon": "./assets/images/minify-market.png"
+      "favicon": "./assets/images/minify-market-icon.png"
     },
     "plugins": [
       "expo-router",
