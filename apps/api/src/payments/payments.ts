@@ -29,10 +29,9 @@ export class PaymentsController {
   const amount=Number(order.total);
   const redirectUrl=process.env.FLW_REDIRECT_URL||'http://localhost:3000/payments/callback';
   const paymentOptions=process.env.FLW_PAYMENT_OPTIONS||'card,mobilemoneyuganda';
-  const commissionPercent=Math.max(0,Math.min(100,Number(process.env.MARKETPLACE_COMMISSION_PERCENT||0)));
+  // Normal marketplace sales carry 0% MINIFY MARKET commission.
   const split:any={id:order.seller.flutterwaveSubaccountId};
-  if(commissionPercent>0){split.transaction_charge_type='percentage';split.transaction_charge=commissionPercent/100;}
-  const payload={tx_ref:reference,amount,currency:'UGX',redirect_url:redirectUrl,payment_options:paymentOptions,customer:{email:order.buyer.email,phonenumber:order.buyer.phone,name:order.buyer.name},customizations:{title:'MINIFY MARKET',description:`Payment for ${order.ad.title}`},meta:{orderId:order.id,reference},subaccounts:[split]};
+  const payload={tx_ref:reference,amount,currency:'UGX',redirect_url:redirectUrl,payment_options:paymentOptions,customer:{email:order.buyer.email,phonenumber:order.buyer.phone,name:order.buyer.name},customizations:{title:'MINIFY MARKET',description:`Payment for ${order.ad.title}`},meta:{orderId:order.id,reference,marketplaceCommissionPercent:0},subaccounts:[split]};
   const response=await fetch(FLW_URL,{method:'POST',headers:{Authorization:`Bearer ${key}`,'Content-Type':'application/json'},body:JSON.stringify(payload)});
   const data:any=await response.json().catch(()=>({}));
   if(!response.ok||data?.status!=='success'||!data?.data?.link)throw new ForbiddenException(data?.message||'Could not start the Flutterwave payment.');
