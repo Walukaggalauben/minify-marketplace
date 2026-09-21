@@ -35,7 +35,10 @@ export class SubscriptionsController{
   if(!user||!['SELLER','ADMIN'].includes(user.role))throw new ForbiddenException('Seller account required.');
   if(!user.email||!user.phone)throw new ForbiddenException('A valid seller email and phone number are required.');
   const reference=`MM-SUB-${randomUUID()}`;const amount=PLANS[plan];
-  const payment=await this.db.subscriptionPayment.create({data:{userId:req.user.sub,plan,amount,currency:'UGX',provider:'FLUTTERWAVE',reference,status:'PENDING'}});
+  const commissionPercent=Number(process.env.MARKETPLACE_COMMISSION_PERCENT||20);
+  const commissionAmount=Math.round(amount*commissionPercent)/100;
+  const sellerNetAmount=amount-commissionAmount;
+  const payment=await this.db.subscriptionPayment.create({data:{userId:req.user.sub,plan,amount,currency:'UGX',provider:'FLUTTERWAVE',reference,status:'PENDING',marketplaceCommissionPercent:commissionPercent,marketplaceCommissionAmount:commissionAmount,sellerNetAmount}});
   const key=process.env.FLW_SECRET_KEY;if(!key)return {ok:false,paymentId:payment.id,amount,currency:'UGX',message:'Payment gateway is not configured. Add FLW_SECRET_KEY before taking live payments.'};
   const response=await fetch('https://api.flutterwave.com/v3/charges?type=mobile_money_uganda',{method:'POST',headers:{Authorization:`Bearer ${key}`,'Content-Type':'application/json'},body:JSON.stringify({phone_number:user.phone,network,amount,currency:'UGX',email:user.email,tx_ref:reference,fullname:user.name,meta:{subscriptionPaymentId:payment.id,plan,marketplaceCommissionPercent:Number(process.env.MARKETPLACE_COMMISSION_PERCENT||20)}})});
   const data:any=await response.json();if(!response.ok||data?.status!=='success')return {ok:false,paymentId:payment.id,amount,currency:'UGX',message:data?.message||'Could not initiate Mobile Money payment.'};

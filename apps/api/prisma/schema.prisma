@@ -215,6 +215,9 @@ model SubscriptionPayment {
   provider  String?
   reference String?
   status    String    @default("PENDING")
+  marketplaceCommissionPercent Decimal @default(20) @db.Decimal(5, 2)
+  marketplaceCommissionAmount  Decimal @default(0) @db.Decimal(14, 2)
+  sellerNetAmount               Decimal @default(0) @db.Decimal(14, 2)
   startedAt DateTime?
   endsAt    DateTime?
   createdAt DateTime  @default(now())
