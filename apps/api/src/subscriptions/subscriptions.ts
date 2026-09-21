@@ -3,8 +3,9 @@ import {randomUUID} from 'crypto';
 import {PrismaService} from '../prisma.service';
 import {JwtAuthGuard} from '../auth/auth.guard';
 
-const TRIAL_DAYS=180;
+const TRIAL_MONTHS=6;
 const PLANS:any={BASIC:50000,PREMIUM:150000,VIP:250000,VIP_GOLD:450000,DIAMOND:950000};
+const addMonths=(date:Date,months:number)=>{const d=new Date(date);d.setMonth(d.getMonth()+months);return d;};
 
 @Controller('subscriptions')
 export class SubscriptionsController{
@@ -17,7 +18,7 @@ export class SubscriptionsController{
   if(user.role!=='SELLER'&&user.role!=='ADMIN')return {active:false,role:user.role};
   if(user.role==='ADMIN')return {active:true,role:user.role,trial:false,paidRequired:false};
   const started=user.sellerTrialStartedAt;
-  const trialEnds=started?new Date(started.getTime()+TRIAL_DAYS*86400000):null;
+  const trialEnds=started?addMonths(started,TRIAL_MONTHS):null;
   const trialDaysRemaining=trialEnds?Math.ceil((trialEnds.getTime()-Date.now())/86400000):0;
   const paid=user.subscriptionStatus==='ACTIVE'&&!!user.subscriptionEndsAt&&user.subscriptionEndsAt.getTime()>Date.now();
   return {active:paid||trialDaysRemaining>0,role:user.role,trial:!!started,trialEndsAt:trialEnds?.toISOString()||null,trialDaysRemaining:Math.max(0,trialDaysRemaining),trialExpired:!!started&&trialDaysRemaining<=0,paidRequired:!paid&&trialDaysRemaining<=0,subscriptionPlan:user.subscriptionPlan,subscriptionStatus:user.subscriptionStatus,subscriptionStartedAt:user.subscriptionStartedAt?.toISOString()||null,subscriptionEndsAt:user.subscriptionEndsAt?.toISOString()||null};
@@ -36,7 +37,7 @@ export class SubscriptionsController{
   const reference=`MM-SUB-${randomUUID()}`;const amount=PLANS[plan];
   const payment=await this.db.subscriptionPayment.create({data:{userId:req.user.sub,plan,amount,currency:'UGX',provider:'FLUTTERWAVE',reference,status:'PENDING'}});
   const key=process.env.FLW_SECRET_KEY;if(!key)return {ok:false,paymentId:payment.id,amount,currency:'UGX',message:'Payment gateway is not configured. Add FLW_SECRET_KEY before taking live payments.'};
-  const response=await fetch('https://api.flutterwave.com/v3/charges?type=mobile_money_uganda',{method:'POST',headers:{Authorization:`Bearer ${key}`,'Content-Type':'application/json'},body:JSON.stringify({phone_number:user.phone,network,amount,currency:'UGX',email:user.email,tx_ref:reference,fullname:user.name,meta:{subscriptionPaymentId:payment.id,plan}})});
+  const response=await fetch('https://api.flutterwave.com/v3/charges?type=mobile_money_uganda',{method:'POST',headers:{Authorization:`Bearer ${key}`,'Content-Type':'application/json'},body:JSON.stringify({phone_number:user.phone,network,amount,currency:'UGX',email:user.email,tx_ref:reference,fullname:user.name,meta:{subscriptionPaymentId:payment.id,plan,marketplaceCommissionPercent:Number(process.env.MARKETPLACE_COMMISSION_PERCENT||20)}})});
   const data:any=await response.json();if(!response.ok||data?.status!=='success')return {ok:false,paymentId:payment.id,amount,currency:'UGX',message:data?.message||'Could not initiate Mobile Money payment.'};
   return {ok:true,paymentId:payment.id,reference,amount,currency:'UGX',authorization:data?.meta?.authorization||null,message:'Approve the Mobile Money payment on your phone.'};
  }
