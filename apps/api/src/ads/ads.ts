@@ -31,6 +31,7 @@ export class AdsController {
   if(q.sellerId)where.AND.push({sellerId:String(q.sellerId)});
   if(q.condition)where.AND.push({condition:String(q.condition)});
   if(q.city)where.AND.push({city:{contains:String(q.city),mode:"insensitive"}});
+  if(String(q.verifiedSeller)==="true")where.AND.push({seller:{verified:true}});
   if(q.attributeKey&&q.attributeValue)where.AND.push({attributes:{path:[String(q.attributeKey)],equals:String(q.attributeValue)}});
   for(const [key,value] of Object.entries(q)){if(key.startsWith('attr_')&&String(value).trim()&&!key.startsWith('attrMin_')&&!key.startsWith('attrMax_')){const attrKey=key.slice(5);where.AND.push({attributes:{path:[attrKey],equals:String(value)}});}}
   const numericRanges=new Map<string,{min?:number;max?:number}>();
